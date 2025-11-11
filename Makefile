@@ -1,10 +1,10 @@
 # Makefile for AES-128 FPGA Documentation
 # Compiles LaTeX reports and publication-quality figures
 
-.PHONY: all report diagrams publication standalone clean cleanall help
+.PHONY: all report diagrams publication standalone hardware clean cleanall help
 
 # Default target
-all: report diagrams publication standalone
+all: report diagrams publication standalone hardware
 
 # Compile main technical report
 report:
@@ -31,6 +31,13 @@ standalone:
 	@echo "Compiling standalone figures..."
 	@pdflatex -interaction=nonstopmode standalone_figures.tex > /dev/null
 	@echo "✓ Generated: standalone_figures.pdf (7 pages)"
+
+# Compile hardware architecture diagrams (RTL-level)
+hardware:
+	@echo "Compiling hardware architecture diagrams..."
+	@pdflatex -interaction=nonstopmode hardware_architecture_diagrams.tex > /dev/null
+	@pdflatex -interaction=nonstopmode hardware_architecture_diagrams.tex > /dev/null
+	@echo "✓ Generated: hardware_architecture_diagrams.pdf"
 
 # Extract individual figure PDFs
 extract: standalone
@@ -119,6 +126,7 @@ help:
 	@echo "  make diagrams     - Build architecture diagrams"
 	@echo "  make publication  - Build IEEE publication paper"
 	@echo "  make standalone   - Build standalone figures"
+	@echo "  make hardware     - Build hardware RTL diagrams"
 	@echo "  make extract      - Extract individual figure PDFs"
 	@echo "  make png          - Convert to PNG (300 DPI)"
 	@echo "  make png-hires    - Convert to PNG (600 DPI)"
