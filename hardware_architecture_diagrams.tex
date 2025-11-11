@@ -12,14 +12,14 @@
 \usepackage{subcaption}
 \usepackage{booktabs}
 
-% Hardware component styles - REDUCED SIZES
+% Hardware component styles - PROPERLY SIZED
 \tikzset{
     register/.style={
         rectangle,
         draw=black,
         thick,
-        minimum width=0.9cm,
-        minimum height=0.6cm,
+        minimum width=1cm,
+        minimum height=0.7cm,
         fill=white,
         font=\tiny\ttfamily
     },
@@ -29,8 +29,8 @@
         trapezium right angle=110,
         draw=black,
         thick,
-        minimum width=0.6cm,
-        minimum height=0.5cm,
+        minimum width=0.7cm,
+        minimum height=0.6cm,
         fill=white,
         font=\tiny
     },
@@ -38,8 +38,8 @@
         rectangle,
         draw=black,
         thick,
-        minimum width=0.8cm,
-        minimum height=0.9cm,
+        minimum width=0.9cm,
+        minimum height=0.8cm,
         fill=white,
         font=\tiny
     },
@@ -47,8 +47,8 @@
         rectangle,
         draw=black,
         very thick,
-        minimum width=0.8cm,
-        minimum height=1.2cm,
+        minimum width=0.9cm,
+        minimum height=1cm,
         fill=white,
         font=\tiny
     },
@@ -77,8 +77,8 @@
         draw=black,
         thick,
         rounded corners=2pt,
-        minimum width=0.6cm,
-        minimum height=0.5cm,
+        minimum width=0.7cm,
+        minimum height=0.6cm,
         fill=gray!10,
         font=\tiny
     },
@@ -86,8 +86,8 @@
         rectangle,
         draw=black,
         thick,
-        minimum width=0.5cm,
-        minimum height=0.5cm,
+        minimum width=0.55cm,
+        minimum height=0.55cm,
         fill=gray!20,
         font=\tiny
     }
@@ -103,448 +103,404 @@
 \maketitle
 
 %==============================================================================
-% Figure 1: Complete Datapath Architecture - SPLIT INTO TWO PARTS
+% Figure 1: Complete Datapath - SIMPLIFIED AND PROPERLY SPACED
 %==============================================================================
 \begin{figure*}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.5cm and 0.7cm, scale=0.55, transform shape]
+\begin{tikzpicture}[node distance=0.7cm and 1cm]
 
-% Input Register
-\node[register, minimum width=2.5cm] (input_reg) {Input Reg};
-\node[buswidth] at (input_reg.south) [below=0.02cm] {128};
+% Left side - Control and State
+\node[logic, minimum width=1.8cm, minimum height=2.5cm] (fsm) at (0,0) {};
+\node[font=\small, below=0.05cm of fsm.north] {FSM Control};
 
-% State Register
-\node[register, minimum width=2.5cm, below=0.8cm of input_reg] (state_reg) {State Reg};
-\node[buswidth] at (state_reg.south) [below=0.02cm] {128};
+\node[register, minimum width=1cm, below=0.3cm of fsm] (counters) {Counters};
 
-% Column Multiplexer
-\node[mux, right=1.2cm of state_reg, minimum width=1.2cm] (col_mux) {MUX\\4:1};
-\node[buswidth] at (col_mux.east) [right=0.02cm] {32};
+\node[register, minimum width=2.5cm, right=1.5cm of fsm, yshift=1cm] (input_reg) {Input [127:0]};
+\node[register, minimum width=2.5cm, below=1cm of input_reg] (state_reg) {State [127:0]};
+\node[register, minimum width=2.5cm, below=2.5cm of state_reg] (temp_reg) {Temp [127:0]};
 
-% S-boxes (32-bit processing)
-\node[sbox, right=1cm of col_mux, yshift=0.6cm] (sbox0) {S};
-\node[sbox, right=0.1cm of sbox0] (sbox1) {S};
-\node[sbox, right=0.1cm of sbox1] (sbox2) {S};
-\node[sbox, right=0.1cm of sbox2] (sbox3) {S};
-\node[logic, above=0.08cm of sbox1.north east, minimum width=1.5cm, minimum height=0.4cm] (sb_label) {\tiny SubBytes};
+% Middle - Datapath
+\node[mux, right=1.5cm of state_reg, minimum width=1cm] (col_mux) {MUX\\4:1};
+\node[buswidth, right=0.05cm of col_mux] {32};
 
-% ShiftRows
-\node[logic, right=1cm of col_mux, yshift=-0.3cm, minimum width=1.5cm, minimum height=0.5cm] (shiftrows) {\tiny ShiftRows};
+\node[sbox, right=1.3cm of col_mux, yshift=0.5cm] (sbox0) {S};
+\node[sbox, right=0.12cm of sbox0] (sbox1) {S};
+\node[sbox, right=0.12cm of sbox1] (sbox2) {S};
+\node[sbox, right=0.12cm of sbox2] (sbox3) {S};
+\node[font=\tiny, above=0.05cm of sbox1] {SubBytes};
 
-% MixColumns
-\node[alu, right=1.2cm of sbox1, yshift=-0.2cm, minimum width=1.4cm, minimum height=0.9cm] (mixcol) {\tiny MixColumns\\[-0.05cm]\tiny GF($2^8$)};
+\node[logic, right=1.3cm of col_mux, yshift=-0.3cm, minimum width=1.5cm] (shift) {ShiftRows};
 
-% XOR for AddRoundKey
-\node[logic, circle, minimum size=0.4cm, below=0.6cm of mixcol] (xor_array) {$\oplus$};
-\node[buswidth] at (xor_array.south) [below=0.02cm] {32};
+\node[alu, right=1.5cm of sbox1, minimum width=1.3cm] (mixcol) {MixCol\\GF($2^8$)};
 
-% Temp Register
-\node[register, minimum width=2.5cm, below=0.6cm of state_reg] (temp_reg) {Temp Reg};
-\node[buswidth] at (temp_reg.south) [below=0.02cm] {128};
+\node[logic, circle, minimum size=0.5cm, below=0.8cm of mixcol] (xor) {$\oplus$};
 
-% Demux
-\node[mux, left=0.6cm of temp_reg, minimum width=1.2cm, shape border rotate=180] (col_demux) {DEMUX};
+\node[mux, left=1.5cm of temp_reg, shape border rotate=180] (demux) {DEMUX};
 
-% Key Storage
-\node[memory, below=1cm of temp_reg, minimum width=4.5cm, minimum height=0.9cm] (key_storage) {\tiny Round Keys (44$\times$32)};
+% Right side - Key
+\node[memory, below=1.5cm of temp_reg, minimum width=4cm, minimum height=1cm] (keys) {Round Keys 44$\times$32};
+\node[mux, above=0.5cm of keys, xshift=1.5cm, minimum width=0.8cm] (key_mux) {MUX};
 
-% Round Key Mux
-\node[mux, right=1.5cm of key_storage, minimum width=1cm] (rkey_mux) {MUX};
-\node[buswidth] at (rkey_mux.north) [above=0.02cm] {32};
+\node[register, minimum width=2.5cm, below=1.5cm of demux] (output_reg) {Output [127:0]};
 
-% Output Register
-\node[register, minimum width=2.5cm, below=1cm of col_demux] (output_reg) {Output Reg};
-\node[buswidth] at (output_reg.south) [below=0.02cm] {128};
-
-% FSM Control
-\node[logic, left=2cm of state_reg, minimum width=1.5cm, minimum height=2.2cm] (fsm) {\scriptsize FSM\\[-0.05cm]\scriptsize Control};
-\node[register, below=0.15cm of fsm, minimum width=1.2cm, minimum height=0.5cm] (counters) {\tiny Counters};
-
-% Connections
+% Connections - Data
 \draw[bus] (input_reg) -- (state_reg);
 \draw[bus] (state_reg) -- node[buswidth, above] {32} (col_mux);
 \draw[bus] (col_mux.north) |- (sbox0.west);
-\draw[bus] (sbox3.east) -- ++(0.2,0) |- (mixcol.west);
-\draw[bus] (col_mux.south) |- (shiftrows.west);
-\draw[bus] (shiftrows.east) -| (mixcol.south);
-\draw[bus] (mixcol) -- (xor_array);
-\draw[bus] (xor_array.south) -- ++(0,-0.2) -| (col_demux.east);
-\draw[bus] (col_demux) -- (temp_reg);
-\draw[bus] (temp_reg) |- (state_reg);
+\draw[bus] (sbox3.east) -| (mixcol.north);
+\draw[bus] (col_mux.south) |- (shift.west);
+\draw[bus] (shift.east) -| (mixcol.south);
+\draw[bus] (mixcol) -- (xor);
+\draw[bus] (xor) -- ++(0,-0.5) -| (demux);
+\draw[bus] (demux) -- (temp_reg);
+\draw[bus] (temp_reg.north) -- (state_reg.south);
 \draw[bus] (temp_reg) -- (output_reg);
 
-% Key connections
-\draw[bus] (key_storage) -- (rkey_mux);
-\draw[bus] (rkey_mux.north) -- ++(0,0.4) -| node[buswidth, near end, above] {32} (xor_array.east);
+% Key path
+\draw[bus] (keys) -- (key_mux);
+\draw[bus] (key_mux) -- ++(0,0.8) -| node[buswidth, near end, above] {32} (xor.east);
 
-% Control signals
-\draw[controlwire] (fsm) -- node[above, font=\tiny] {ctrl} (state_reg);
-\draw[controlwire] (counters.east) -- ++(0.2,0) |- (col_mux.west);
-\draw[controlwire] (counters.east) -- ++(0.3,0) |- (col_demux.south);
-\draw[controlwire] (fsm) |- (rkey_mux.west);
-
-% Clock
-\node[font=\tiny, left=0.2cm of fsm.north west] (clk) {clk};
-\draw[wire] (clk) -- (fsm.north west);
+% Control
+\draw[controlwire] (fsm) -- (state_reg);
+\draw[controlwire] (counters) -| (col_mux.west);
+\draw[controlwire] (counters.east) -- ++(0.8,0) |- (demux.south);
+\draw[controlwire] (fsm) |- (key_mux.west);
 
 \end{tikzpicture}
-\caption{Complete AES datapath showing register-transfer level implementation with 32-bit column-wise processing, parallel S-boxes, and control signals.}
+\caption{Complete AES datapath with RTL-level components showing 32-bit column-wise processing architecture.}
 \label{fig:datapath}
 \end{figure*}
 
 \clearpage
 
 %==============================================================================
-% Figure 2: Pipeline Comparison
+% Figure 2: Pipeline Comparison - TWO SEPARATE SUBFIGURES
 %==============================================================================
 \begin{figure*}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.5cm and 0.9cm, scale=0.6, transform shape]
+\begin{subfigure}[b]{\textwidth}
+\centering
+\begin{tikzpicture}[node distance=0.6cm and 1cm]
 
-% Top: Traditional pipeline
-\node[font=\small\bfseries] at (0,3.5) {(a) Traditional 128-bit Pipeline};
+\node[font=\small\bfseries] at (4,0.5) {(a) Traditional 128-bit Pipeline};
 
-\node[register, minimum width=1.5cm] (s0) at (0,2.5) {State $S_r$};
+\node[register, minimum width=1.5cm] (s0) at (0,0) {State};
 \node[register, minimum width=1.5cm, right=of s0] (sb) {SubBytes};
-\node[logic, right=of sb, minimum width=1.5cm, minimum height=0.6cm] (sr) {ShiftRows};
-\node[register, minimum width=1.5cm, right=of sr] (mc) {MixColumns};
+\node[logic, right=of sb, minimum width=1.5cm] (sr) {ShiftRows};
+\node[register, minimum width=1.5cm, right=of sr] (mc) {MixCols};
 \node[logic, circle, minimum size=0.5cm, right=of mc] (xor) {$\oplus$};
-\node[register, minimum width=1.5cm, right=of xor] (s1) {State $S_{r+1}$};
+\node[register, minimum width=1.5cm, right=of xor] (s1) {State};
 
-\node[register, above=0.6cm of xor] (rkey) {$K_r$};
-\draw[bus] (rkey) -- (xor);
+\node[register, above=0.7cm of xor] (rk) {$K_r$ [128]};
 
 \draw[bus] (s0) -- (sb);
 \draw[bus] (sb) -- (sr);
 \draw[bus] (sr) -- (mc);
 \draw[bus] (mc) -- (xor);
 \draw[bus] (xor) -- (s1);
+\draw[bus] (rk) -- (xor);
 
-\node[buswidth] at (s0.south) [below=0.02cm] {128};
-\node[font=\tiny, below=0.4cm of mc] {5 cycles/round, high area};
-
-% Bottom: Column-wise
-\node[font=\small\bfseries] at (0,0.5) {(b) Column-wise 32-bit (This Work)};
-
-\node[register, minimum width=1.5cm] (cs0) at (0,-0.5) {State Reg};
-\node[mux, right=0.7cm of cs0] (cmux) {MUX};
-\node[sbox, right=0.7cm of cmux] (csb) {S$\times$4};
-\node[logic, right=0.7cm of csb, minimum width=1.2cm] (csr) {\tiny ShiftRows};
-\node[alu, right=0.7cm of csr, minimum width=1cm] (cmc) {\tiny MixCol};
-\node[logic, circle, minimum size=0.4cm, right=0.5cm of cmc] (cxor) {$\oplus$};
-\node[register, minimum width=1.5cm, right=0.7cm of cxor] (cs1) {State Reg};
-
-\node[register, above=0.6cm of cxor] (crkey) {$K_r$[31:0]};
-\draw[bus] (crkey) -- (cxor);
-
-\draw[bus] (cs0) -- (cmux);
-\draw[bus] (cmux) -- node[buswidth, above] {32} (csb);
-\draw[bus] (csb) -- (csr);
-\draw[bus] (csr) -- (cmc);
-\draw[bus] (cmc) -- (cxor);
-\draw[bus] (cxor) -- (cs1);
-\draw[bus] (cs1.south) -- ++(0,-0.3) -| node[near end, above, font=\tiny] {feedback} (cs0.south);
-
-\node[register, below=0.5cm of cmux, minimum width=0.8cm, minimum height=0.4cm] (ccnt) {\tiny col\_cnt};
-\draw[controlwire] (ccnt) -- (cmux);
-
-\node[font=\tiny, below=0.4cm of cmc] {4 cycles/op, 75\% area reduction};
+\node[buswidth, below=0.05cm of s0.south] {128};
+\node[font=\tiny, below=0.4cm of mc] {High area, 1 cycle/round};
 
 \end{tikzpicture}
-\caption{Pipeline architecture comparison: (a) traditional 128-bit full-width pipeline vs (b) column-wise 32-bit sequential processing with resource savings.}
+\end{subfigure}
+
+\vspace{1cm}
+
+\begin{subfigure}[b]{\textwidth}
+\centering
+\begin{tikzpicture}[node distance=0.6cm and 1cm]
+
+\node[font=\small\bfseries] at (4,0.5) {(b) Column-wise 32-bit (This Work)};
+
+\node[register, minimum width=1.5cm] (s0) at (0,0) {State};
+\node[mux, right=of s0] (mux) {MUX};
+\node[sbox, right=of mux] (sb) {S$\times$4};
+\node[logic, right=of sb, minimum width=1.2cm] (sr) {ShiftRows};
+\node[alu, right=of sr, minimum width=1cm] (mc) {MixCol};
+\node[logic, circle, minimum size=0.4cm, right=of mc] (xor) {$\oplus$};
+\node[register, minimum width=1.5cm, right=of xor] (s1) {State};
+
+\node[register, above=0.7cm of xor] (rk) {$K_r$ [32]};
+\node[register, below=0.6cm of mux, minimum width=0.9cm, minimum height=0.5cm] (cnt) {col\_cnt};
+
+\draw[bus] (s0) -- (mux);
+\draw[bus] (mux) -- node[buswidth, above] {32} (sb);
+\draw[bus] (sb) -- (sr);
+\draw[bus] (sr) -- (mc);
+\draw[bus] (mc) -- (xor);
+\draw[bus] (xor) -- (s1);
+\draw[bus] (rk) -- (xor);
+\draw[bus] (s1.south) -- ++(0,-0.4) -| node[near end, above, font=\tiny] {feedback} (s0.south);
+\draw[controlwire] (cnt) -- (mux);
+
+\node[buswidth, below=0.05cm of s0.south] {128};
+\node[font=\tiny, below=0.8cm of mc] {Low area, 4 cycles/round};
+
+\end{tikzpicture}
+\end{subfigure}
+
+\caption{Pipeline comparison: (a) full-width vs (b) column-wise processing.}
 \label{fig:pipeline}
 \end{figure*}
 
 \clearpage
 
 %==============================================================================
-% Figure 3: Key Expansion Hardware
+% Figure 3: Key Expansion - CLEAN LAYOUT
 %==============================================================================
 \begin{figure}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.5cm and 0.6cm, scale=0.75, transform shape]
+\begin{tikzpicture}[node distance=0.6cm and 0.7cm]
 
-% Key window registers
-\node[register, minimum width=0.9cm, minimum height=0.6cm] (w0) {$w_0$};
-\node[register, minimum width=0.9cm, minimum height=0.6cm, right=0.12cm of w0] (w1) {$w_1$};
-\node[register, minimum width=0.9cm, minimum height=0.6cm, right=0.12cm of w1] (w2) {$w_2$};
-\node[register, minimum width=0.9cm, minimum height=0.6cm, right=0.12cm of w2] (w3) {$w_3$};
+% Key registers
+\node[register, minimum width=1cm] (w0) at (0,0) {$w_0$};
+\node[register, minimum width=1cm, right=0.15cm of w0] (w1) {$w_1$};
+\node[register, minimum width=1cm, right=0.15cm of w1] (w2) {$w_2$};
+\node[register, minimum width=1cm, right=0.15cm of w2] (w3) {$w_3$};
 
-\node[font=\scriptsize, above=0.08cm of w1.north east] {128-bit Window};
-\node[buswidth] at (w0.south) [below=0.01cm] {32};
+\node[font=\scriptsize, above=0.1cm of w1] {128-bit Window};
 
-% RotWord
-\node[logic, below=0.6cm of w3, minimum width=0.9cm] (rotword) {\tiny RotWord};
-\draw[bus] (w3) -- (rotword);
+% RotWord + SubWord
+\node[logic, below=0.7cm of w3, minimum width=1cm] (rot) {RotWord};
+\node[sbox, below=0.3cm of rot, xshift=-0.45cm] (s0) {S};
+\node[sbox, right=0.1cm of s0] (s1) {S};
+\node[sbox, right=0.1cm of s1] (s2) {S};
+\node[sbox, right=0.1cm of s2] (s3) {S};
 
-% S-boxes
-\node[sbox, below=0.25cm of rotword, xshift=-0.5cm] (ks0) {S};
-\node[sbox, right=0.08cm of ks0] (ks1) {S};
-\node[sbox, right=0.08cm of ks1] (ks2) {S};
-\node[sbox, right=0.08cm of ks2] (ks3) {S};
+\draw[bus] (w3) -- (rot);
+\draw[wire] (rot) -- ++(0,-0.1) -| (s0);
+\draw[wire] (rot) -- ++(0,-0.1) -| (s1);
+\draw[wire] (rot) -- ++(0,-0.1) -| (s2);
+\draw[wire] (rot) -- ++(0,-0.1) -| (s3);
 
-\draw[wire] (rotword.south) -- ++(0,-0.08) -| (ks0.north);
-\draw[wire] (rotword.south) -- ++(0,-0.08) -| (ks1.north);
-\draw[wire] (rotword.south) -- ++(0,-0.08) -| (ks2.north);
-\draw[wire] (rotword.south) -- ++(0,-0.08) -| (ks3.north);
+% Rcon + XOR
+\node[memory, below=0.7cm of s1, minimum width=1.2cm, minimum height=0.7cm] (rcon) {Rcon};
 
-% Rcon
-\node[memory, below=0.6cm of ks1, minimum width=1.2cm, minimum height=0.6cm] (rcon) {\tiny Rcon LUT};
+\node[logic, circle, minimum size=0.4cm, below=0.7cm of rcon] (x1) {$\oplus$};
+\node[logic, circle, minimum size=0.4cm, below=0.6cm of x1] (x2) {$\oplus$};
+\node[logic, circle, minimum size=0.4cm, right=0.7cm of x2] (x3) {$\oplus$};
+\node[logic, circle, minimum size=0.4cm, right=0.7cm of x3] (x4) {$\oplus$};
 
-% XOR chain
-\node[logic, circle, minimum size=0.35cm, below=0.6cm of rcon] (xor1) {$\oplus$};
-\node[logic, circle, minimum size=0.35cm, below=0.5cm of xor1] (xor2) {$\oplus$};
-\node[logic, circle, minimum size=0.35cm, right=0.6cm of xor2] (xor3) {$\oplus$};
-\node[logic, circle, minimum size=0.35cm, right=0.6cm of xor3] (xor4) {$\oplus$};
-
-\draw[wire] (ks1.south) -- ++(0,-0.15) -| (xor1.north);
-\draw[wire] (rcon) -- (xor1);
-\draw[bus] (w0.south) -- ++(0,-2) -| (xor2.west);
-\draw[wire] (xor1) -- (xor2);
-\draw[wire] (xor2) -- (xor3);
-\draw[bus] (w1.south) -- ++(0,-2.5) -| (xor3.north);
-\draw[bus] (w2.south) -- ++(0,-2.5) -| (xor4.north);
-\draw[wire] (xor3) -- (xor4);
+\draw[wire] (s1) -- ++(0,-0.2) -| (x1);
+\draw[wire] (rcon) -- (x1);
+\draw[bus] (w0) -- ++(0,-2.3) -| (x2);
+\draw[wire] (x1) -- (x2);
+\draw[wire] (x2) -- (x3);
+\draw[bus] (w1) -- ++(0,-2.8) -| (x3);
+\draw[bus] (w2) -- ++(0,-2.8) -| (x4);
+\draw[wire] (x3) -- (x4);
 
 % Feedback
-\draw[wire] (xor2.west) -- ++(-0.25,0) -- ++(0,3.8) -- (w0.west);
-\draw[wire] (xor3.north) -- ++(0,0.2) -- ++(-0.15,0) -- ++(0,3.6) -- (w1.west);
-\draw[wire] (xor4.north) -- ++(0,0.2) -- ++(-0.1,0) -- ++(0,3.6) -- (w2.west);
-\draw[wire] (xor4.east) -- ++(0.2,0) -- ++(0,3.8) -- (w3.east);
+\draw[wire] (x2) -- ++(-0.3,0) -- ++(0,4.2) -- (w0);
+\draw[wire] (x3) -- ++(0,0.3) -- ++(-0.2,0) -- ++(0,4) -- (w1);
+\draw[wire] (x4) -- ++(0,0.3) -- ++(-0.1,0) -- ++(0,4) -- (w2);
+\draw[wire] (x4) -- ++(0.2,0) -- ++(0,4.2) -- (w3);
 
-% Output mux
-\node[mux, right=1.2cm of w1, minimum width=0.8cm] (outmux) {MUX};
-\draw[bus] (w0.east) -- ++(0.15,0) |- (outmux.west);
-\draw[bus] (w1.east) -- ++(0.2,0) |- (outmux.west);
-\draw[bus] (w2.east) -- ++(0.25,0) |- (outmux.west);
-\draw[bus] (w3.east) -- ++(0.3,0) |- (outmux.west);
-
-\node[right=0.25cm of outmux, font=\scriptsize] (keyout) {$K_r$[31:0]};
-\draw[bus] (outmux) -- (keyout);
+% Output
+\node[mux, right=1.3cm of w1] (outmux) {MUX};
+\draw[bus] (w0) -- ++(0.2,0) |- (outmux);
+\draw[bus] (w1) -- ++(0.25,0) |- (outmux);
+\draw[bus] (w2) -- ++(0.3,0) |- (outmux);
+\draw[bus] (w3) -- ++(0.35,0) |- (outmux);
+\node[right=0.3cm of outmux, font=\scriptsize] {$K_r$ [32]};
+\draw[bus] (outmux) -- ++(0.3,0);
 
 \end{tikzpicture}
-\caption{On-the-fly key expansion hardware with 4-word register window, achieving 90\% memory reduction vs. storing all 44 words.}
+\caption{On-the-fly key expansion with 4-word window (90\% memory reduction).}
 \label{fig:keyexp}
 \end{figure}
 
 \clearpage
 
 %==============================================================================
-% Figure 4: SubBytes Implementation
+% Figure 4: SubBytes - VERTICAL LAYOUT
 %==============================================================================
 \begin{figure}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.5cm and 0.6cm, scale=0.8, transform shape]
+\begin{tikzpicture}[node distance=0.6cm]
 
-% Input
-\node[font=\scriptsize] (input) {32-bit Input};
-\node[below=0.25cm of input] (split) {};
+\node[font=\scriptsize] (in) {32-bit Input};
+\node[below=0.3cm of in] (split) {};
 
-% Split into bytes
-\node[register, below=0.4cm of split, xshift=-1.5cm, minimum width=0.7cm, minimum height=0.5cm] (b0) {[31:24]};
-\node[register, below=0.4cm of split, xshift=-0.5cm, minimum width=0.7cm, minimum height=0.5cm] (b1) {[23:16]};
-\node[register, below=0.4cm of split, xshift=0.5cm, minimum width=0.7cm, minimum height=0.5cm] (b2) {[15:8]};
-\node[register, below=0.4cm of split, xshift=1.5cm, minimum width=0.7cm, minimum height=0.5cm] (b3) {[7:0]};
+\node[register, below=0.5cm of split, xshift=-1.8cm, minimum width=0.8cm] (b0) {[31:24]};
+\node[register, below=0.5cm of split, xshift=-0.6cm, minimum width=0.8cm] (b1) {[23:16]};
+\node[register, below=0.5cm of split, xshift=0.6cm, minimum width=0.8cm] (b2) {[15:8]};
+\node[register, below=0.5cm of split, xshift=1.8cm, minimum width=0.8cm] (b3) {[7:0]};
 
-\draw[bus] (input) -- (split);
+\draw[bus] (in) -- (split);
 \draw[wire] (split) -| (b0);
 \draw[wire] (split) -| (b1);
 \draw[wire] (split) -| (b2);
 \draw[wire] (split) -| (b3);
 
-\node[buswidth] at (b0.west) [left=0.01cm] {8};
+\node[memory, below=0.8cm of b0, minimum width=1.1cm, minimum height=1.3cm] (sb0) {};
+\node[font=\tiny, below=0.05cm of sb0.north] {S-box};
+\node[font=\tiny, below=0.2cm of sb0.north] {LUT};
+\node[font=\tiny, below=0.35cm of sb0.north] {256$\times$8};
 
-% S-boxes
-\node[memory, below=0.6cm of b0, minimum width=1cm, minimum height=1.2cm] (sbox0) {};
-\node[font=\tiny, below=0.03cm of sbox0.north] {S-box};
-\node[font=\tiny, below=0.15cm of sbox0.north] {LUT};
-\node[font=\tiny, below=0.27cm of sbox0.north] {256$\times$8};
+\node[sbox, below=0.8cm of b1, minimum width=0.9cm, minimum height=0.9cm] (sb1) {S-box\\LUT};
+\node[sbox, below=0.8cm of b2, minimum width=0.9cm, minimum height=0.9cm] (sb2) {S-box\\LUT};
+\node[sbox, below=0.8cm of b3, minimum width=0.9cm, minimum height=0.9cm] (sb3) {S-box\\LUT};
 
-\node[sbox, below=0.6cm of b1, minimum width=0.8cm, minimum height=0.8cm] (sbox1) {\tiny S-box\\[-0.05cm]\tiny LUT};
-\node[sbox, below=0.6cm of b2, minimum width=0.8cm, minimum height=0.8cm] (sbox2) {\tiny S-box\\[-0.05cm]\tiny LUT};
-\node[sbox, below=0.6cm of b3, minimum width=0.8cm, minimum height=0.8cm] (sbox3) {\tiny S-box\\[-0.05cm]\tiny LUT};
+\draw[wire] (b0) -- (sb0);
+\draw[wire] (b1) -- (sb1);
+\draw[wire] (b2) -- (sb2);
+\draw[wire] (b3) -- (sb3);
 
-\draw[wire] (b0) -- node[buswidth, right] {8} (sbox0);
-\draw[wire] (b1) -- (sbox1);
-\draw[wire] (b2) -- (sbox2);
-\draw[wire] (b3) -- (sbox3);
+\node[register, below=0.8cm of sb0, minimum width=0.8cm] (o0) {[31:24]};
+\node[register, below=0.8cm of sb1, minimum width=0.8cm] (o1) {[23:16]};
+\node[register, below=0.8cm of sb2, minimum width=0.8cm] (o2) {[15:8]};
+\node[register, below=0.8cm of sb3, minimum width=0.8cm] (o3) {[7:0]};
 
-% Output bytes
-\node[register, below=0.6cm of sbox0, minimum width=0.7cm, minimum height=0.5cm] (ob0) {[31:24]};
-\node[register, below=0.6cm of sbox1, minimum width=0.7cm, minimum height=0.5cm] (ob1) {[23:16]};
-\node[register, below=0.6cm of sbox2, minimum width=0.7cm, minimum height=0.5cm] (ob2) {[15:8]};
-\node[register, below=0.6cm of sbox3, minimum width=0.7cm, minimum height=0.5cm] (ob3) {[7:0]};
+\draw[wire] (sb0) -- (o0);
+\draw[wire] (sb1) -- (o1);
+\draw[wire] (sb2) -- (o2);
+\draw[wire] (sb3) -- (o3);
 
-\draw[wire] (sbox0) -- (ob0);
-\draw[wire] (sbox1) -- (ob1);
-\draw[wire] (sbox2) -- (ob2);
-\draw[wire] (sbox3) -- (ob3);
+\node[below=0.5cm of o1] (merge) {};
+\node[font=\scriptsize, below=0.3cm of merge] (out) {32-bit Output};
 
-% Merge
-\node[below=0.4cm of ob1] (merge) {};
-\node[font=\scriptsize, below=0.25cm of merge] (output) {32-bit Output};
+\draw[wire] (o0) |- (merge);
+\draw[wire] (o1) -- (merge);
+\draw[wire] (o2) -- (merge);
+\draw[wire] (o3) |- (merge);
+\draw[bus] (merge) -- (out);
 
-\draw[wire] (ob0) |- (merge);
-\draw[wire] (ob1) -- (merge);
-\draw[wire] (ob2) -- (merge);
-\draw[wire] (ob3) |- (merge);
-\draw[bus] (merge) -- (output);
-
-% Control
-\node[register, left=0.9cm of sbox0, minimum width=0.7cm, minimum height=0.4cm] (mode) {\tiny enc/dec};
-\draw[controlwire] (mode) -- (sbox0.west);
-\draw[controlwire] (mode.south) -- ++(0,-0.25) -| (sbox1.west);
+\node[register, left=1cm of sb0, minimum width=0.8cm, minimum height=0.5cm] (mode) {enc/dec};
+\draw[controlwire] (mode) -- (sb0);
 
 \end{tikzpicture}
-\caption{SubBytes hardware with four parallel 256$\times$8-bit S-box LUTs for 32-bit processing. Control selects forward or inverse S-box.}
+\caption{SubBytes with four parallel 256$\times$8 S-box LUTs for 32-bit processing.}
 \label{fig:subbytes}
 \end{figure}
 
 \clearpage
 
 %==============================================================================
-% Figure 5: MixColumns Hardware
+% Figure 5: MixColumns - SIMPLIFIED
 %==============================================================================
 \begin{figure}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.4cm and 0.5cm, scale=0.75, transform shape]
+\begin{tikzpicture}[node distance=0.5cm and 0.6cm]
 
-% Input bytes
-\node[register, minimum width=0.7cm, minimum height=0.5cm] (s0) {$s_0$};
-\node[register, minimum width=0.7cm, minimum height=0.5cm, below=0.15cm of s0] (s1) {$s_1$};
-\node[register, minimum width=0.7cm, minimum height=0.5cm, below=0.15cm of s1] (s2) {$s_2$};
-\node[register, minimum width=0.7cm, minimum height=0.5cm, below=0.15cm of s2] (s3) {$s_3$};
+% Inputs
+\node[register, minimum width=0.8cm] (s0) {$s_0$};
+\node[register, minimum width=0.8cm, below=0.2cm of s0] (s1) {$s_1$};
+\node[register, minimum width=0.8cm, below=0.2cm of s1] (s2) {$s_2$};
+\node[register, minimum width=0.8cm, below=0.2cm of s2] (s3) {$s_3$};
 
-\node[font=\scriptsize, above=0.08cm of s0] {Input};
-\node[buswidth, font=\tiny, left=0.03cm of s0.west] {8};
+\node[font=\scriptsize, above=0.1cm of s0] {Input};
+\node[buswidth, left=0.05cm of s0] {8};
 
-% GF multipliers
-\node[alu, right=0.8cm of s0, minimum width=0.6cm, minimum height=0.45cm] (m02_0) {\tiny$\times$02};
-\node[alu, right=0.3cm of m02_0, minimum width=0.6cm, minimum height=0.45cm] (m03_0) {\tiny$\times$03};
+% GF mults (show for first two rows only)
+\node[alu, right=0.9cm of s0, minimum width=0.65cm, minimum height=0.5cm] (m02_0) {$\times$02};
+\node[alu, right=0.35cm of m02_0, minimum width=0.65cm, minimum height=0.5cm] (m03_0) {$\times$03};
 
-\node[alu, right=0.8cm of s1, minimum width=0.6cm, minimum height=0.45cm] (m02_1) {\tiny$\times$02};
-\node[alu, right=0.3cm of m02_1, minimum width=0.6cm, minimum height=0.45cm] (m03_1) {\tiny$\times$03};
+\node[alu, right=0.9cm of s1, minimum width=0.65cm, minimum height=0.5cm] (m02_1) {$\times$02};
+\node[alu, right=0.35cm of m02_1, minimum width=0.65cm, minimum height=0.5cm] (m03_1) {$\times$03};
 
 \draw[wire] (s0) -- (m02_0);
-\draw[wire] (s0.east) -- ++(0.25,0) |- (m03_0.west);
+\draw[wire] (s0.east) -- ++(0.3,0) |- (m03_0);
 \draw[wire] (s1) -- (m02_1);
-\draw[wire] (s1.east) -- ++(0.25,0) |- (m03_1.west);
+\draw[wire] (s1.east) -- ++(0.3,0) |- (m03_1);
 
-% XOR trees (simplified for space)
-\node[logic, circle, minimum size=0.3cm, right=1.8cm of s0, yshift=-0.15cm] (xor0) {$\oplus$};
-\node[logic, circle, minimum size=0.3cm, right=0.45cm of xor0] (xor0_2) {$\oplus$};
+% XOR trees
+\node[logic, circle, minimum size=0.35cm, right=2cm of s0, yshift=-0.15cm] (x0) {$\oplus$};
+\node[logic, circle, minimum size=0.35cm, right=0.5cm of x0] (x0b) {$\oplus$};
 
-\node[logic, circle, minimum size=0.3cm, right=1.8cm of s1, yshift=-0.15cm] (xor1) {$\oplus$};
-\node[logic, circle, minimum size=0.3cm, right=0.45cm of xor1] (xor1_2) {$\oplus$};
+\node[logic, circle, minimum size=0.35cm, right=2cm of s1, yshift=-0.15cm] (x1) {$\oplus$};
+\node[logic, circle, minimum size=0.35cm, right=0.5cm of x1] (x1b) {$\oplus$};
 
-\draw[wire] (m02_0) -| (xor0);
-\draw[wire] (m03_1) -| (xor0);
-\draw[wire] (xor0) -- (xor0_2);
-\draw[wire] (s2.east) -- ++(2,0) |- (xor0_2.south);
+\draw[wire] (m02_0) -| (x0);
+\draw[wire] (m03_1) -| (x0);
+\draw[wire] (x0) -- (x0b);
+\draw[wire] (s2.east) -- ++(2.2,0) |- (x0b);
 
-\draw[wire] (m02_1) -| (xor1);
-\draw[wire] (s0.east) -- ++(1.9,0) |- (xor1.north);
-\draw[wire] (xor1) -- (xor1_2);
+\draw[wire] (m02_1) -| (x1);
+\draw[wire] (s0.east) -- ++(2.1,0) |- (x1);
+\draw[wire] (x1) -- (x1b);
 
-% Output
-\node[register, right=0.7cm of xor0_2, minimum width=0.7cm, minimum height=0.5cm] (out0) {$s_0'$};
-\node[register, right=0.7cm of xor1_2, minimum width=0.7cm, minimum height=0.5cm] (out1) {$s_1'$};
-\node[register, right=2.9cm of s2, minimum width=0.7cm, minimum height=0.5cm] (out2) {$s_2'$};
-\node[register, right=2.9cm of s3, minimum width=0.7cm, minimum height=0.5cm] (out3) {$s_3'$};
+% Outputs
+\node[register, right=0.8cm of x0b, minimum width=0.8cm] (o0) {$s_0'$};
+\node[register, right=0.8cm of x1b, minimum width=0.8cm] (o1) {$s_1'$};
+\node[register, right=3.4cm of s2, minimum width=0.8cm] (o2) {$s_2'$};
+\node[register, right=3.4cm of s3, minimum width=0.8cm] (o3) {$s_3'$};
 
-\draw[wire] (xor0_2) -- (out0);
-\draw[wire] (xor1_2) -- (out1);
+\draw[wire] (x0b) -- (o0);
+\draw[wire] (x1b) -- (o1);
 
-\node[font=\scriptsize, above=0.08cm of out0] {Output};
+\node[font=\tiny, right=1.7cm of s2] {Similar XOR tree};
+\node[font=\tiny, right=1.7cm of s3] {Similar XOR tree};
 
-% Similar annotation for s2, s3
-\node[font=\tiny, right=1.5cm of s2] {Similar XOR tree};
-\node[font=\tiny, right=1.5cm of s3] {Similar XOR tree};
+\node[font=\scriptsize, above=0.1cm of o0] {Output};
 
-% GF multiplier detail
-\node[draw, dashed, below=0.6cm of s1, minimum width=2.2cm, minimum height=0.9cm, xshift=0.8cm] (gf) {};
-\node[font=\tiny, below=0.03cm of gf.north] {GF($2^8$) Mult};
-\node[font=\tiny, below=0.2cm of gf.north, align=left] {
-$\times$02 = xtime(x)\\
-xtime: shift + XOR
-};
+% Detail box
+\node[draw, dashed, below=0.7cm of s1, minimum width=2.5cm, minimum height=1cm, xshift=0.9cm] (detail) {};
+\node[font=\tiny, below=0.05cm of detail.north] {GF($2^8$) Multiplier};
+\node[font=\tiny, below=0.25cm of detail.north, align=center] {$\times$02 = xtime(x)\\shift + cond. XOR};
 
 \end{tikzpicture}
-\caption{MixColumns hardware with GF($2^8$) multipliers and XOR trees implementing matrix multiplication for one column.}
+\caption{MixColumns with GF($2^8$) multipliers and XOR trees for one column.}
 \label{fig:mixcol}
 \end{figure}
 
 \clearpage
 
 %==============================================================================
-% Figure 6: Control FSM
+% Figure 6: Control FSM - CLEAR LAYOUT
 %==============================================================================
 \begin{figure}[!t]
 \centering
-\begin{tikzpicture}[node distance=0.6cm and 0.8cm, scale=0.85, transform shape]
+\begin{tikzpicture}[node distance=0.7cm and 1cm]
 
 % State register
-\node[register, minimum width=1.8cm, minimum height=0.7cm] (state_reg) {State Register};
-\node[buswidth] at (state_reg.south) [below=0.01cm] {4};
+\node[register, minimum width=2cm, minimum height=0.8cm] (state) {State Register};
+\node[buswidth, below=0.02cm of state.south] {4};
 
 % Next state logic
-\node[logic, above=0.8cm of state_reg, minimum width=2.2cm, minimum height=1cm] (nsl) {\scriptsize Next State\\[-0.05cm]\scriptsize Logic};
+\node[logic, above=1cm of state, minimum width=2.5cm, minimum height=1.2cm] (nsl) {Next State Logic};
 
 % Output logic
-\node[logic, right=1.2cm of state_reg, minimum width=2.2cm, minimum height=1cm] (output) {\scriptsize Output\\[-0.05cm]\scriptsize Logic};
+\node[logic, right=1.5cm of state, minimum width=2.5cm, minimum height=1.2cm] (out) {Output Logic};
 
 % Counters
-\node[register, below=0.8cm of state_reg, xshift=-1cm, minimum width=1cm, minimum height=0.5cm] (round) {\tiny round\_cnt};
-\node[buswidth] at (round.south) [below=0.01cm] {4};
+\node[register, below=1cm of state, xshift=-1.2cm, minimum width=1.1cm, minimum height=0.6cm] (rc) {round\_cnt};
+\node[buswidth, below=0.02cm of rc.south] {4};
 
-\node[register, below=0.8cm of state_reg, xshift=0.3cm, minimum width=1cm, minimum height=0.5cm] (col) {\tiny col\_cnt};
-\node[buswidth] at (col.south) [below=0.01cm] {2};
+\node[register, below=1cm of state, xshift=0.3cm, minimum width=1.1cm, minimum height=0.6cm] (cc) {col\_cnt};
+\node[buswidth, below=0.02cm of cc.south] {2};
 
-\node[register, below=0.8cm of state_reg, xshift=1.5cm, minimum width=0.9cm, minimum height=0.5cm] (phase) {\tiny phase};
-\node[buswidth] at (phase.south) [below=0.01cm] {2};
+\node[register, below=1cm of state, xshift=1.7cm, minimum width=1cm, minimum height=0.6cm] (ph) {phase};
+\node[buswidth, below=0.02cm of ph.south] {2};
 
-% Increment logic
-\node[logic, below=0.6cm of round, minimum width=1cm, minimum height=0.4cm] (inc1) {\tiny +1};
-\node[logic, below=0.6cm of col, minimum width=1cm, minimum height=0.4cm] (inc2) {\tiny +1};
+% Increment
+\node[logic, below=0.7cm of rc, minimum width=1.1cm, minimum height=0.5cm] (inc1) {+1};
+\node[logic, below=0.7cm of cc, minimum width=1.1cm, minimum height=0.5cm] (inc2) {+1};
 
-% Inputs
-\node[left=1.2cm of nsl] (inputs) {};
-\node[font=\scriptsize, above=0.03cm of inputs] {start};
-\node[font=\scriptsize, below=0.03cm of inputs] {enc\_dec};
+% Inputs/outputs
+\node[left=1.5cm of nsl, font=\scriptsize, align=left] {start\\enc\_dec};
+\node[right=1.5cm of out, font=\tiny, align=left] {mux\_sel\\key\_sel\\enables\\ready};
 
-% Outputs
-\node[right=1.2cm of output] (outputs) {};
-\node[font=\tiny, above=0.25cm of outputs, align=left] {
-mux\_sel\\
-key\_sel\\
-enable signals\\
-ready
-};
+\draw[wire] (state) -- (nsl);
+\draw[wire] (nsl) -- (state);
+\draw[wire] (state) -- (out);
 
-% Control flow
-\draw[wire] (state_reg) -- (nsl);
-\draw[wire] (nsl) -- node[buswidth, left] {4} (state_reg);
-\draw[wire] (state_reg) -- (output);
-\draw[wire] (output) -- (outputs);
-\draw[wire] (inputs) -- (nsl);
+\draw[wire] (rc) -- (nsl);
+\draw[wire] (cc) -- (nsl);
+\draw[wire] (rc) -- (out);
+\draw[wire] (cc) -- (out);
 
-% Counter connections
-\draw[wire] (round) -- (nsl);
-\draw[wire] (col) -- (nsl);
-\draw[wire] (round) -- (output);
-\draw[wire] (col) -- (output);
+\draw[controlwire] (out) -- ++(0,-0.5) -| (inc1);
+\draw[controlwire] (out) -- ++(0,-0.5) -| (inc2);
+\draw[wire] (inc1) -- (rc);
+\draw[wire] (inc2) -- (cc);
 
-\draw[controlwire] (output.south) -- ++(0,-0.4) -| (inc1.north);
-\draw[controlwire] (output.south) -- ++(0,-0.4) -| (inc2.north);
-\draw[wire] (inc1) -- (round);
-\draw[wire] (inc2) -- (col);
-
-% Clock
-\node[font=\scriptsize, left=0.25cm of state_reg.south west] (clk) {clk};
-\draw[wire] (clk) -- (state_reg.south west);
+\node[font=\scriptsize, left=0.3cm of state.south west] {clk};
 
 \end{tikzpicture}
-\caption{Control FSM hardware showing state register, next-state logic, output logic, and round/column counters with increment logic.}
+\caption{Control FSM with state register, logic blocks, and counters.}
 \label{fig:fsm}
 \end{figure}
 
