@@ -11,6 +11,7 @@ Complete hardware implementation of AES-128 encryption/decryption from RTL desig
 ### 🎯 Publication-Quality Figures (IEEE/ACM Ready)
 - **`aes_publication_diagrams.tex`** - Complete IEEE conference paper with 9 figures
 - **`standalone_figures.tex`** - Individual figures for easy paper inclusion
+- **`hardware_architecture_diagrams.tex`** - RTL-level hardware diagrams (registers, muxes, datapaths) ⭐
 - **See [PUBLICATION_FIGURES.md](PUBLICATION_FIGURES.md) for complete usage guide**
 
 ### Quick Start
@@ -20,6 +21,9 @@ make all
 
 # For IEEE publication paper
 make publication
+
+# For hardware architecture diagrams (RTL-level)
+make hardware
 
 # Extract individual figures
 make extract
@@ -129,6 +133,8 @@ All figures meet IEEE/ACM publication standards:
 - ✅ High-resolution exports available
 
 ### Available Figures
+
+**Block-Level Diagrams** (publication_diagrams.tex):
 1. High-level system architecture
 2. AES core internal structure
 3. FSM state machine diagram
@@ -138,6 +144,14 @@ All figures meet IEEE/ACM publication standards:
 7. Resource utilization chart
 8. Performance comparison plot
 9. Timing diagram
+
+**Hardware Architecture Diagrams** (hardware_architecture_diagrams.tex - RTL level):
+1. Complete datapath with registers, muxes, and control
+2. Pipeline structure comparison (128-bit vs 32-bit)
+3. Key expansion hardware (registers, XOR chains, S-boxes)
+4. SubBytes S-box LUT implementation
+5. MixColumns GF multipliers and XOR trees
+6. Control FSM with state registers and counters
 
 ## 🔬 Implementation Highlights
 
