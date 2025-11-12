@@ -1,45 +1,38 @@
 `timescale 1ns / 1ps
-
 ////////////////////////////////////////////////////////////////////////////////
-// AES SubBytes 32-bit - SHARED COMPOSITE FIELD VERSION
-// Uses 4 shared S-boxes (instead of 8 separate)
-// Combines forward/inverse with enc_dec control
-// ~50% reduction vs separate S-boxes
+// 32-bit SubBytes with 8 LUT-based S-boxes (Temporary for Testing)
+// Uses proven LUT S-boxes to verify ultimate architecture
+// NOTE: This temporarily replaces composite field version for testing
 ////////////////////////////////////////////////////////////////////////////////
 
 module aes_subbytes_32bit_shared(
     input  wire [31:0] data_in,
-    input  wire        enc_dec,     // 1=encrypt (forward), 0=decrypt (inverse)
+    input  wire        enc_dec,  // 1=encrypt, 0=decrypt
     output wire [31:0] data_out
 );
 
-////////////////////////////////////////////////////////////////////////////////
-// 4 Shared Composite Field S-boxes
-// Each S-box handles both forward and inverse based on enc_dec
-////////////////////////////////////////////////////////////////////////////////
+// Forward S-box outputs (encryption)
+wire [7:0] fwd_out0, fwd_out1, fwd_out2, fwd_out3;
 
-aes_sbox_composite_field sbox0 (
-    .data_in(data_in[31:24]),
-    .enc_dec(enc_dec),
-    .data_out(data_out[31:24])
-);
+// Inverse S-box outputs (decryption)
+wire [7:0] inv_out0, inv_out1, inv_out2, inv_out3;
 
-aes_sbox_composite_field sbox1 (
-    .data_in(data_in[23:16]),
-    .enc_dec(enc_dec),
-    .data_out(data_out[23:16])
-);
+// Instantiate forward S-boxes
+aes_sbox fwd_sbox0 (.in(data_in[31:24]), .out(fwd_out0));
+aes_sbox fwd_sbox1 (.in(data_in[23:16]), .out(fwd_out1));
+aes_sbox fwd_sbox2 (.in(data_in[15:8]),  .out(fwd_out2));
+aes_sbox fwd_sbox3 (.in(data_in[7:0]),   .out(fwd_out3));
 
-aes_sbox_composite_field sbox2 (
-    .data_in(data_in[15:8]),
-    .enc_dec(enc_dec),
-    .data_out(data_out[15:8])
-);
+// Instantiate inverse S-boxes
+aes_inv_sbox inv_sbox0 (.in(data_in[31:24]), .out(inv_out0));
+aes_inv_sbox inv_sbox1 (.in(data_in[23:16]), .out(inv_out1));
+aes_inv_sbox inv_sbox2 (.in(data_in[15:8]),  .out(inv_out2));
+aes_inv_sbox inv_sbox3 (.in(data_in[7:0]),   .out(inv_out3));
 
-aes_sbox_composite_field sbox3 (
-    .data_in(data_in[7:0]),
-    .enc_dec(enc_dec),
-    .data_out(data_out[7:0])
-);
+// Mux based on enc_dec signal
+assign data_out[31:24] = enc_dec ? fwd_out0 : inv_out0;
+assign data_out[23:16] = enc_dec ? fwd_out1 : inv_out1;
+assign data_out[15:8]  = enc_dec ? fwd_out2 : inv_out2;
+assign data_out[7:0]   = enc_dec ? fwd_out3 : inv_out3;
 
 endmodule
