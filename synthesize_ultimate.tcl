@@ -26,43 +26,38 @@ create_project ${project_name} ./${project_name} -part ${part} -force
 # Add source files in correct order (bottom-up hierarchy)
 puts "Adding source files..."
 
-# Level 1: Base components
-add_files -norecurse {
-    aes_rcon.v
-}
-
-# Level 2: Composite field S-box (fundamental building block)
+# Level 1: Composite field S-box (fundamental building block)
 add_files -norecurse {
     aes_sbox_composite_field.v
 }
 
-# Level 3: Shared SubBytes wrapper
+# Level 2: Shared SubBytes wrapper
 add_files -norecurse {
     aes_subbytes_32bit_shared.v
 }
 
-# Level 4: Other transformation modules
+# Level 3: Other transformation modules
 add_files -norecurse {
     aes_shiftrows_128bit.v
     aes_mixcolumns_32bit.v
 }
 
-# Level 5: Key expansion
+# Level 4: Key expansion
 add_files -norecurse {
     aes_key_expansion_otf.v
 }
 
-# Level 6: Ultimate AES core with all optimizations
+# Level 5: Ultimate AES core with all optimizations
 add_files -norecurse {
     aes_core_ultimate.v
 }
 
-# Level 7: Seven segment display controller
+# Level 6: Seven segment display controller
 add_files -norecurse {
     seven_seg_controller.v
 }
 
-# Level 8: Top-level module
+# Level 7: Top-level module
 add_files -norecurse {
     aes_fpga_top.v
 }

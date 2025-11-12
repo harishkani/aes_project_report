@@ -23,7 +23,7 @@ set_property SHREG_EXTRACT YES [get_cells -hierarchical -filter {NAME =~ *mixcol
 set_property SRL_STYLE SRL [get_cells -hierarchical -filter {NAME =~ *mixcol_pipe*}]
 
 # Prevent optimization from removing shift register structures
-set_property KEEP_HIERARCHY SOFT [get_cells -hierarchical -filter {NAME =~ *core_optimized_srl*}]
+set_property KEEP_HIERARCHY SOFT [get_cells -hierarchical -filter {NAME =~ *core_ultimate*}]
 
 ###################################################################################
 # Timing constraints remain same as original design
@@ -43,8 +43,8 @@ set_false_path -from [get_ports rst_n]
 # Encourage SRL inference
 set_property SHREG_MIN_SIZE 3 [current_design]
 
-# Allow Vivado to use distributed RAM for small memories
-set_property RAM_STYLE DISTRIBUTED [get_cells -hierarchical -filter {NAME =~ *sbox*}]
+# Note: Composite field S-boxes use pure logic (not LUT/RAM based)
+# RAM_STYLE constraint not applicable for aes_sbox_composite_field
 
 # Report shift register extraction
 set_property REPORT_METHODOLOGY 1 [current_design]
