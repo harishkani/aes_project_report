@@ -48,6 +48,12 @@ rtl/aes_key_expansion_otf.v
 rtl/aes_core_ultimate_canright.v
 
 # ============================================================================
+# FPGA Implementation Files (for synthesis - comment out for simulation-only)
+# ============================================================================
+# aes_canright_fpga_top.v             # Top-level FPGA wrapper
+# display/seven_seg_controller.v      # 7-segment display controller
+
+# ============================================================================
 # Testbench (comment out for synthesis)
 # ============================================================================
 tb/tb_aes_ultimate_canright.v
