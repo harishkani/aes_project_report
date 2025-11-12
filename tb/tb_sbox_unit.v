@@ -15,7 +15,7 @@ integer i, pass_count, fail_count;
 reg [7:0] encrypted;
 
 // DUT
-aes_sbox_composite_field_fixed dut (
+aes_sbox_composite_working dut (
     .data_in(data_in),
     .enc_dec(enc_dec),
     .data_out(data_out)
