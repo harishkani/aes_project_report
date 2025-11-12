@@ -1,38 +1,38 @@
-\documentclass[tikz,border=10pt]{standalone}
+\documentclass[tikz,border=15pt]{standalone}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 \tikzset{
     register/.style={
         rectangle, draw=black, thick,
-        minimum width=1cm, minimum height=0.75cm,
+        minimum width=1.2cm, minimum height=0.9cm,
         fill=white, font=\small\ttfamily
     },
     memory/.style={
         rectangle, draw=black, very thick,
-        minimum width=1.1cm, minimum height=1.1cm,
+        minimum width=1.3cm, minimum height=1.3cm,
         fill=white, font=\small
     },
     wire/.style={draw=black, thick, -Stealth},
-    bus/.style={draw=black, line width=1.5pt, -Stealth},
+    bus/.style={draw=black, line width=1.8pt, -Stealth},
     controlwire/.style={draw=black!60, dashed, -Stealth},
-    buswidth/.style={font=\tiny, fill=white, inner sep=1pt}
+    buswidth/.style={font=\scriptsize, fill=white, inner sep=2pt}
 }
 
 \begin{document}
-\begin{tikzpicture}[node distance=0.9cm]
+\begin{tikzpicture}
 
 % Input
-\node[font=\normalsize] (in) {32-bit Column Input};
-\node[below=0.6cm of in] (split) {};
+\node[font=\large] (in) at (3.5,9) {32-bit Column Input};
+\node (split) at (3.5,7.5) {};
 
 % Input byte registers
-\node[register, below=0.9cm of split, xshift=-2.2cm] (b0) {Byte 3\\{[}31:24{]}};
-\node[register, below=0.9cm of split, xshift=-0.7cm] (b1) {Byte 2\\{[}23:16{]}};
-\node[register, below=0.9cm of split, xshift=0.7cm] (b2) {Byte 1\\{[}15:8{]}};
-\node[register, below=0.9cm of split, xshift=2.2cm] (b3) {Byte 0\\{[}7:0{]}};
+\node[register] (b0) at (0,6) {Byte 3\\{[}31:24{]}};
+\node[register] (b1) at (2.5,6) {Byte 2\\{[}23:16{]}};
+\node[register] (b2) at (5,6) {Byte 1\\{[}15:8{]}};
+\node[register] (b3) at (7.5,6) {Byte 0\\{[}7:0{]}};
 
-\node[buswidth, below=0.05cm of b0.south] {8};
+\node[buswidth] at (-0.9,6) {8};
 
 \draw[bus] (in) -- (split);
 \draw[wire] (split) -| (b0);
@@ -41,22 +41,22 @@
 \draw[wire] (split) -| (b3);
 
 % S-box LUTs
-\node[memory, below=1.2cm of b0] (sb0) {};
-\node[font=\small, below=0.1cm of sb0.north] {S-box};
-\node[font=\small, below=0.35cm of sb0.north] {LUT};
-\node[font=\small, below=0.6cm of sb0.north] {256$\times$8};
+\node[memory, minimum width=1.4cm, minimum height=1.4cm] (sb0) at (0,3) {};
+\node[font=\small] at (0,3.4) {S-box};
+\node[font=\small] at (0,3) {LUT};
+\node[font=\small] at (0,2.6) {256$\times$8};
 
-\node[memory, below=1.2cm of b1, minimum width=1cm, minimum height=1cm] (sb1) {};
-\node[font=\small, below=0.08cm of sb1.north] {S-box};
-\node[font=\small, below=0.3cm of sb1.north] {LUT};
+\node[memory, minimum width=1.2cm, minimum height=1.2cm] (sb1) at (2.5,3) {};
+\node[font=\small] at (2.5,3.3) {S-box};
+\node[font=\small] at (2.5,2.7) {LUT};
 
-\node[memory, below=1.2cm of b2, minimum width=1cm, minimum height=1cm] (sb2) {};
-\node[font=\small, below=0.08cm of sb2.north] {S-box};
-\node[font=\small, below=0.3cm of sb2.north] {LUT};
+\node[memory, minimum width=1.2cm, minimum height=1.2cm] (sb2) at (5,3) {};
+\node[font=\small] at (5,3.3) {S-box};
+\node[font=\small] at (5,2.7) {LUT};
 
-\node[memory, below=1.2cm of b3, minimum width=1cm, minimum height=1cm] (sb3) {};
-\node[font=\small, below=0.08cm of sb3.north] {S-box};
-\node[font=\small, below=0.3cm of sb3.north] {LUT};
+\node[memory, minimum width=1.2cm, minimum height=1.2cm] (sb3) at (7.5,3) {};
+\node[font=\small] at (7.5,3.3) {S-box};
+\node[font=\small] at (7.5,2.7) {LUT};
 
 \draw[wire] (b0) -- (sb0);
 \draw[wire] (b1) -- (sb1);
@@ -64,10 +64,10 @@
 \draw[wire] (b3) -- (sb3);
 
 % Output byte registers
-\node[register, below=1.2cm of sb0] (o0) {Byte 3'\\{[}31:24{]}};
-\node[register, below=1.2cm of sb1] (o1) {Byte 2'\\{[}23:16{]}};
-\node[register, below=1.2cm of sb2] (o2) {Byte 1'\\{[}15:8{]}};
-\node[register, below=1.2cm of sb3] (o3) {Byte 0'\\{[}7:0{]}};
+\node[register] (o0) at (0,0.5) {Byte 3'\\{[}31:24{]}};
+\node[register] (o1) at (2.5,0.5) {Byte 2'\\{[}23:16{]}};
+\node[register] (o2) at (5,0.5) {Byte 1'\\{[}15:8{]}};
+\node[register] (o3) at (7.5,0.5) {Byte 0'\\{[}7:0{]}};
 
 \draw[wire] (sb0) -- (o0);
 \draw[wire] (sb1) -- (o1);
@@ -75,17 +75,17 @@
 \draw[wire] (sb3) -- (o3);
 
 % Merge point
-\node[below=0.9cm of o1] (merge) {};
-\node[font=\normalsize, below=0.5cm of merge] (out) {32-bit Column Output};
+\node (merge) at (3.5,-1) {};
+\node[font=\large] (out) at (3.5,-2.2) {32-bit Column Output};
 
 \draw[wire] (o0) |- (merge);
-\draw[wire] (o1) -- (merge);
-\draw[wire] (o2) -- (merge);
+\draw[wire] (o1) |- (merge);
+\draw[wire] (o2) |- (merge);
 \draw[wire] (o3) |- (merge);
 \draw[bus] (merge) -- (out);
 
 % Mode control
-\node[register, left=1.5cm of sb0, minimum width=1cm, minimum height=0.7cm] (mode) {enc/dec};
+\node[register, minimum width=1.2cm, minimum height=0.9cm] (mode) at (-2.5,3) {enc/dec};
 \draw[controlwire] (mode) -- (sb0.west);
 
 \end{tikzpicture}

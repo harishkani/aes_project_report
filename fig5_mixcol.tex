@@ -1,85 +1,86 @@
-\documentclass[tikz,border=10pt]{standalone}
+\documentclass[tikz,border=15pt]{standalone}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 \tikzset{
     register/.style={
         rectangle, draw=black, thick,
-        minimum width=0.9cm, minimum height=0.75cm,
+        minimum width=1cm, minimum height=0.85cm,
         fill=white, font=\small\ttfamily
     },
     alu/.style={
         rectangle, draw=black, thick,
-        minimum width=0.85cm, minimum height=0.65cm,
+        minimum width=0.95cm, minimum height=0.75cm,
         fill=white, font=\small
     },
     wire/.style={draw=black, thick, -Stealth},
-    buswidth/.style={font=\tiny, fill=white, inner sep=1pt},
+    buswidth/.style={font=\scriptsize, fill=white, inner sep=2pt},
     logic/.style={
         rectangle, draw=black, thick, rounded corners=3pt,
-        minimum width=0.75cm, minimum height=0.65cm,
+        minimum width=0.8cm, minimum height=0.75cm,
         fill=gray!10, font=\small
     }
 }
 
 \begin{document}
-\begin{tikzpicture}[node distance=0.7cm and 1cm]
+\begin{tikzpicture}
 
 % Input bytes
 \node[register] (s0) at (0,0) {$s_0$};
-\node[register, below=0.35cm of s0] (s1) {$s_1$};
-\node[register, below=0.35cm of s1] (s2) {$s_2$};
-\node[register, below=0.35cm of s2] (s3) {$s_3$};
+\node[register] (s1) at (0,-1.2) {$s_1$};
+\node[register] (s2) at (0,-2.4) {$s_2$};
+\node[register] (s3) at (0,-3.6) {$s_3$};
 
-\node[font=\normalsize, above=0.2cm of s0] {Input};
-\node[buswidth, left=0.1cm of s0] {8};
+\node[font=\large, above=0.25cm of s0] {Input};
+\node[buswidth] at (-0.9,0) {8};
 
 % GF multipliers (first two rows)
-\node[alu, right=1.3cm of s0] (m02_0) {$\times$02};
-\node[alu, right=0.5cm of m02_0] (m03_0) {$\times$03};
+\node[alu] (m02_0) at (2,0) {$\times$02};
+\node[alu] (m03_0) at (3.5,0) {$\times$03};
 
-\node[alu, right=1.3cm of s1] (m02_1) {$\times$02};
-\node[alu, right=0.5cm of m02_1] (m03_1) {$\times$03};
+\node[alu] (m02_1) at (2,-1.2) {$\times$02};
+\node[alu] (m03_1) at (3.5,-1.2) {$\times$03};
 
 \draw[wire] (s0) -- (m02_0);
-\draw[wire] (s0.east) -- ++(0.4,0) |- (m03_0);
+\draw[wire] (s0.east) -- ++(0.6,0) |- (m03_0);
 \draw[wire] (s1) -- (m02_1);
-\draw[wire] (s1.east) -- ++(0.4,0) |- (m03_1);
+\draw[wire] (s1.east) -- ++(0.6,0) |- (m03_1);
 
 % XOR trees (first two outputs)
-\node[logic, circle, minimum size=0.6cm, right=2.8cm of s0, yshift=-0.2cm] (x0a) {$\oplus$};
-\node[logic, circle, minimum size=0.6cm, right=0.8cm of x0a] (x0b) {$\oplus$};
+\node[logic, circle, minimum size=0.75cm] (x0a) at (5.2,0) {$\oplus$};
+\node[logic, circle, minimum size=0.75cm] (x0b) at (6.8,0) {$\oplus$};
 
-\node[logic, circle, minimum size=0.6cm, right=2.8cm of s1, yshift=-0.2cm] (x1a) {$\oplus$};
-\node[logic, circle, minimum size=0.6cm, right=0.8cm of x1a] (x1b) {$\oplus$};
+\node[logic, circle, minimum size=0.75cm] (x1a) at (5.2,-1.2) {$\oplus$};
+\node[logic, circle, minimum size=0.75cm] (x1b) at (6.8,-1.2) {$\oplus$};
 
-\draw[wire] (m02_0) -| (x0a);
-\draw[wire] (m03_1) -| (x0a);
+\draw[wire] (m02_0) -- (x0a);
+\draw[wire] (m03_1) -- ++(0.7,0) |- (x0a);
 \draw[wire] (x0a) -- (x0b);
-\draw[wire] (s2.east) -- ++(3,0) |- (x0b);
+\draw[wire] (s2.east) -- ++(6,0) |- (x0b);
 
-\draw[wire] (m02_1) -| (x1a);
-\draw[wire] (s0.east) -- ++(2.9,0) |- (x1a);
+\draw[wire] (m02_1) -- (x1a);
+\draw[wire] (s0.east) -- ++(4.4,0) |- (x1a);
 \draw[wire] (x1a) -- (x1b);
 
 % Output bytes
-\node[register, right=1cm of x0b] (o0) {$s_0'$};
-\node[register, right=1cm of x1b] (o1) {$s_1'$};
-\node[register, right=4.8cm of s2] (o2) {$s_2'$};
-\node[register, right=4.8cm of s3] (o3) {$s_3'$};
+\node[register] (o0) at (8.5,0) {$s_0'$};
+\node[register] (o1) at (8.5,-1.2) {$s_1'$};
+\node[register] (o2) at (8.5,-2.4) {$s_2'$};
+\node[register] (o3) at (8.5,-3.6) {$s_3'$};
 
 \draw[wire] (x0b) -- (o0);
 \draw[wire] (x1b) -- (o1);
 
-\node[font=\normalsize, right=2.2cm of s2] {...};
-\node[font=\normalsize, right=2.2cm of s3] {...};
+\node[font=\Large] at (4.5,-2.4) {...};
+\node[font=\Large] at (4.5,-3.6) {...};
 
-\node[font=\normalsize, above=0.2cm of o0] {Output};
+\node[font=\large, above=0.25cm of o0] {Output};
 
 % GF multiplier detail box
-\node[draw, dashed, below=1.5cm of s2, minimum width=3.5cm, minimum height=1.5cm, xshift=1.4cm] (detail) {};
-\node[font=\normalsize, below=0.15cm of detail.north] {GF($2^8$) Multiplier Detail};
-\node[font=\normalsize, below=0.6cm of detail.north, align=center] {$\times$02 = xtime($x$)\\left shift + cond. XOR 0x1B};
+\node[draw, dashed, minimum width=4cm, minimum height=1.8cm] (detail) at (4,-6) {};
+\node[font=\large, text centered] at (4,-5.2) {GF($2^8$) Multiplier Detail};
+\node[font=\large, text centered] at (4,-6.1) {$\times$02 = xtime($x$)};
+\node[font=\large, text centered] at (4,-6.7) {left shift + cond. XOR 0x1B};
 
 \end{tikzpicture}
 \end{document}
