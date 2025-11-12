@@ -7,7 +7,7 @@
 //
 // This is a direct port of the proven implementation.
 //
-// All sub-modules are now in separate files for better organization:
+// All sub-modules are in separate files and instantiated via proper module hierarchy:
 // - canright_modules/gf_sq_2.v       : GF(2^2) square
 // - canright_modules/gf_sclw_2.v     : GF(2^2) scale by omega
 // - canright_modules/gf_sclw2_2.v    : GF(2^2) scale by omega^2
@@ -20,21 +20,10 @@
 // - canright_modules/mux21i.v        : Inverting 2:1 multiplexor
 // - canright_modules/select_not_8.v  : 8-bit select and invert
 // - canright_modules/bsbox.v         : Core Canright S-box implementation
+//
+// NOTE: All sub-module files must be included during compilation.
+//       No `include directives used - proper module instantiation only.
 ////////////////////////////////////////////////////////////////////////////////
-
-// Include all sub-modules
-`include "canright_modules/gf_sq_2.v"
-`include "canright_modules/gf_sclw_2.v"
-`include "canright_modules/gf_sclw2_2.v"
-`include "canright_modules/gf_muls_2.v"
-`include "canright_modules/gf_muls_scl_2.v"
-`include "canright_modules/gf_inv_4.v"
-`include "canright_modules/gf_sq_scl_4.v"
-`include "canright_modules/gf_muls_4.v"
-`include "canright_modules/gf_inv_8.v"
-`include "canright_modules/mux21i.v"
-`include "canright_modules/select_not_8.v"
-`include "canright_modules/bsbox.v"
 
 // Top-level wrapper with standard interface
 module aes_sbox_canright_verified(
