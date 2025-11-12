@@ -13,7 +13,7 @@
 #   4. The project will be created in ./vivado_project/
 #
 # Features:
-#   - Automatically adds all 19 RTL files
+#   - Automatically adds all 9 RTL files
 #   - Sets up constraints
 #   - Configures synthesis and implementation strategies
 #   - Sets top module
@@ -60,72 +60,14 @@ puts "==========================================================================
 
 # RTL directories
 set rtl_dir "${script_dir}/rtl"
-set modules_dir "${rtl_dir}/canright_modules"
 set display_dir "${script_dir}/display"
 
-puts "\n>>> Adding Canright Sub-modules (GF arithmetic primitives)"
+puts "\n>>> Adding S-box Modules"
 
-# GF(2^2) primitive operations
-set gf2_files [list \
-    "${modules_dir}/gf_sq_2.v" \
-    "${modules_dir}/gf_sclw_2.v" \
-    "${modules_dir}/gf_sclw2_2.v" \
-    "${modules_dir}/gf_muls_2.v" \
-    "${modules_dir}/gf_muls_scl_2.v" \
-    "${modules_dir}/mux21i.v" \
-]
-
-foreach file $gf2_files {
-    if {[file exists $file]} {
-        add_files -norecurse $file
-        puts "  ✓ [file tail $file]"
-    } else {
-        puts "  ✗ ERROR: File not found: $file"
-    }
-}
-
-puts "\n>>> Adding GF(2^4) Operations"
-
-# GF(2^4) operations
-set gf4_files [list \
-    "${modules_dir}/gf_inv_4.v" \
-    "${modules_dir}/gf_sq_scl_4.v" \
-    "${modules_dir}/gf_muls_4.v" \
-]
-
-foreach file $gf4_files {
-    if {[file exists $file]} {
-        add_files -norecurse $file
-        puts "  ✓ [file tail $file]"
-    } else {
-        puts "  ✗ ERROR: File not found: $file"
-    }
-}
-
-puts "\n>>> Adding GF(2^8) and Utility Modules"
-
-# GF(2^8) and selection modules
-set gf8_files [list \
-    "${modules_dir}/gf_inv_8.v" \
-    "${modules_dir}/select_not_8.v" \
-    "${modules_dir}/bsbox.v" \
-]
-
-foreach file $gf8_files {
-    if {[file exists $file]} {
-        add_files -norecurse $file
-        puts "  ✓ [file tail $file]"
-    } else {
-        puts "  ✗ ERROR: File not found: $file"
-    }
-}
-
-puts "\n>>> Adding S-box Wrapper Modules"
-
-# S-box modules
+# S-box modules (consolidated single-file Canright implementation)
 set sbox_files [list \
     "${rtl_dir}/aes_sbox.v" \
-    "${rtl_dir}/aes_sbox_canright_verified.v" \
+    "${rtl_dir}/aes_sbox_canright.v" \
 ]
 
 foreach file $sbox_files {
@@ -277,12 +219,12 @@ puts "Target Device:    $part_number (Nexys A7-100T)"
 puts "Top Module:       aes_canright_fpga_top"
 puts ""
 puts "RTL Files Added:"
-puts "  - 12 Canright sub-modules (GF arithmetic)"
-puts "  -  6 AES operation modules"
-puts "  -  1 Display controller"
-puts "  -  1 Top-level wrapper"
+puts "  - 2 S-box modules (LUT + consolidated Canright)"
+puts "  - 5 AES operation modules"
+puts "  - 1 Display controller"
+puts "  - 1 Top-level wrapper"
 puts "  ---"
-puts "  Total: 20 design source files"
+puts "  Total: 9 design source files"
 puts ""
 puts "Constraints: aes_canright_nexys_a7.xdc"
 puts "Testbench:   tb_aes_ultimate_canright.v"

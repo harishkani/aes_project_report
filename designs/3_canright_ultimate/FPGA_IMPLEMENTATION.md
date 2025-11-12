@@ -16,7 +16,7 @@ source create_vivado_project.tcl
 
 This automatically:
 - Creates a new Vivado project
-- Adds all 20 design files
+- Adds all 9 design files
 - Configures constraints
 - Sets synthesis/implementation strategies
 - Ready to synthesize!
@@ -52,24 +52,22 @@ This automatically:
 
 ## Files Overview
 
-### Design Files (20 total)
+### Design Files (9 total)
 
-**Canright Sub-modules** (12 files in `rtl/canright_modules/`):
+**S-box Modules** (2 files in `rtl/`):
 ```
-gf_sq_2.v, gf_sclw_2.v, gf_sclw2_2.v     # GF(2^2) ops
-gf_muls_2.v, gf_muls_scl_2.v, mux21i.v   # GF(2^2) multiply
-gf_inv_4.v, gf_sq_scl_4.v, gf_muls_4.v   # GF(2^4) ops
-gf_inv_8.v, select_not_8.v, bsbox.v      # GF(2^8) ops
+aes_sbox.v                         # LUT-based S-box (for key expansion)
+aes_sbox_canright.v                # Consolidated Canright S-box (all 13 modules in one file)
 ```
 
-**AES Modules** (6 files in `rtl/`):
+**Note**: The Canright S-box uses a **consolidated single-file design** containing all 13 Galois Field arithmetic modules (GF_SQ_2, GF_SCLW_2, GF_INV_4, GF_INV_8, bSbox, etc.). This simplifies project management from 12 separate files to just 1 file.
+
+**AES Operation Modules** (5 files in `rtl/`):
 ```
-aes_sbox.v                         # LUT S-box (for key expansion)
-aes_sbox_canright_verified.v       # Canright S-box wrapper
-aes_subbytes_32bit_canright.v      # SubBytes with Canright
-aes_shiftrows_128bit.v             # ShiftRows
-aes_mixcolumns_32bit.v             # MixColumns
-aes_key_expansion_otf.v            # Key expansion
+aes_subbytes_32bit_canright.v      # SubBytes with Canright S-box
+aes_shiftrows_128bit.v             # ShiftRows transformation
+aes_mixcolumns_32bit.v             # MixColumns transformation
+aes_key_expansion_otf.v            # On-the-fly key expansion
 aes_core_ultimate_canright.v       # Main AES core
 ```
 
@@ -257,9 +255,9 @@ Power:
 **Symptom**: Synthesis fails with "module xxx not found"
 
 **Solution**:
-1. Ensure ALL 20 files are added (use `create_vivado_project.tcl`)
+1. Ensure ALL 9 files are added (use `create_vivado_project.tcl`)
 2. Check compile order (should be auto-updated)
-3. Verify all Canright sub-modules are included
+3. Verify the consolidated Canright S-box file (`aes_sbox_canright.v`) is included
 
 ### Issue: Timing violations
 
@@ -327,9 +325,10 @@ Test all 4 NIST vectors (test 0-3):
 
 For issues:
 1. Check testbench passes: `iverilog @files.list && vvp a.out`
-2. Verify all 20 files are in project
-3. Check Vivado version (tested on 2023.2)
-4. Review synthesis warnings for critical issues
+2. Verify all 9 files are in project
+3. Ensure consolidated Canright S-box file is included
+4. Check Vivado version (tested on 2023.2)
+5. Review synthesis warnings for critical issues
 
 ---
 

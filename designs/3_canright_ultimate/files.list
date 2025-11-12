@@ -5,34 +5,10 @@
 # Note: All paths are relative to designs/3_canright_ultimate/
 
 # ============================================================================
-# Canright S-box Sub-modules (GF arithmetic) - NO DEPENDENCIES
-# ============================================================================
-rtl/canright_modules/gf_sq_2.v
-rtl/canright_modules/gf_sclw_2.v
-rtl/canright_modules/gf_sclw2_2.v
-rtl/canright_modules/gf_muls_2.v
-rtl/canright_modules/gf_muls_scl_2.v
-rtl/canright_modules/mux21i.v
-
-# ============================================================================
-# GF(2^4) Operations - Depend on GF(2^2) modules above
-# ============================================================================
-rtl/canright_modules/gf_inv_4.v
-rtl/canright_modules/gf_sq_scl_4.v
-rtl/canright_modules/gf_muls_4.v
-
-# ============================================================================
-# GF(2^8) and Selection - Depend on modules above
-# ============================================================================
-rtl/canright_modules/gf_inv_8.v
-rtl/canright_modules/select_not_8.v
-rtl/canright_modules/bsbox.v
-
-# ============================================================================
-# S-box Wrappers
+# S-box Modules
 # ============================================================================
 rtl/aes_sbox.v                      # LUT-based S-box (for key expansion)
-rtl/aes_sbox_canright_verified.v    # Canright S-box wrapper
+rtl/aes_sbox_canright.v             # Canright S-box (all 13 modules in one file)
 
 # ============================================================================
 # AES Operation Modules
