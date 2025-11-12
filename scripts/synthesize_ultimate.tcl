@@ -28,45 +28,45 @@ puts "Adding source files..."
 
 # Level 1: Composite field S-box (fundamental building block)
 add_files -norecurse {
-    aes_sbox_composite_field.v
+    ../rtl/modules/aes_sbox_composite_field.v
 }
 
 # Level 2: Shared SubBytes wrapper
 add_files -norecurse {
-    aes_subbytes_32bit_shared.v
+    ../rtl/modules/aes_subbytes_32bit_shared.v
 }
 
 # Level 3: Other transformation modules
 add_files -norecurse {
-    aes_shiftrows_128bit.v
-    aes_mixcolumns_32bit.v
+    ../rtl/modules/aes_shiftrows_128bit.v
+    ../rtl/modules/aes_mixcolumns_32bit.v
 }
 
 # Level 4: Key expansion
 add_files -norecurse {
-    aes_key_expansion_otf.v
+    ../rtl/modules/aes_key_expansion_otf.v
 }
 
 # Level 5: Ultimate AES core with all optimizations
 add_files -norecurse {
-    aes_core_ultimate.v
+    ../rtl/core/aes_core_ultimate.v
 }
 
 # Level 6: Seven segment display controller
 add_files -norecurse {
-    seven_seg_controller.v
+    ../rtl/display/seven_seg_controller.v
 }
 
 # Level 7: Top-level module
 add_files -norecurse {
-    aes_fpga_top.v
+    ../rtl/aes_fpga_top.v
 }
 
 # Add constraint files
 puts "Adding constraint files..."
 add_files -fileset constrs_1 -norecurse {
-    aes_con.xdc
-    aes_srl_optimization.xdc
+    ../constraints/aes_con.xdc
+    ../constraints/aes_srl_optimization.xdc
 }
 
 # Set top module
