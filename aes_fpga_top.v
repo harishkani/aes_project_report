@@ -178,7 +178,7 @@ reg aes_start;
 wire aes_ready;
 wire [127:0] aes_output;
 
-aes_core_fixed aes_inst (
+aes_core_ultimate aes_inst (
     .clk(clk),
     .rst_n(rst_n),
     .start(aes_start),

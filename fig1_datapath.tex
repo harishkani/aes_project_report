@@ -1,104 +1,94 @@
-\documentclass[tikz,border=10pt]{standalone}
+\documentclass[tikz,border=15pt]{standalone}
 \usepackage{tikz}
 \usetikzlibrary{shapes.geometric, arrows.meta, positioning, calc}
 
 \tikzset{
     register/.style={
         rectangle, draw=black, thick,
-        minimum width=1.2cm, minimum height=0.8cm,
+        minimum width=1.6cm, minimum height=1cm,
         fill=white, font=\small\ttfamily
     },
     mux/.style={
         trapezium, trapezium left angle=70, trapezium right angle=110,
         draw=black, thick,
-        minimum width=0.8cm, minimum height=0.7cm,
+        minimum width=1cm, minimum height=0.9cm,
         fill=white, font=\small
     },
     alu/.style={
         rectangle, draw=black, thick,
-        minimum width=1cm, minimum height=0.9cm,
-        fill=white, font=\small
-    },
-    memory/.style={
-        rectangle, draw=black, very thick,
-        minimum width=1cm, minimum height=1.1cm,
+        minimum width=1.3cm, minimum height=1.1cm,
         fill=white, font=\small
     },
     wire/.style={draw=black, thick, -Stealth},
-    bus/.style={draw=black, line width=1.5pt, -Stealth},
+    bus/.style={draw=black, line width=1.8pt, -Stealth},
     controlwire/.style={draw=black!60, dashed, -Stealth},
-    buswidth/.style={font=\tiny, fill=white, inner sep=1pt},
+    buswidth/.style={font=\scriptsize, fill=white, inner sep=2pt},
     logic/.style={
         rectangle, draw=black, thick, rounded corners=3pt,
-        minimum width=0.8cm, minimum height=0.7cm,
+        minimum width=1cm, minimum height=0.9cm,
         fill=gray!10, font=\small
     },
     sbox/.style={
         rectangle, draw=black, thick,
-        minimum width=0.6cm, minimum height=0.6cm,
+        minimum width=0.7cm, minimum height=0.7cm,
         fill=gray!20, font=\small
     }
 }
 
 \begin{document}
-\begin{tikzpicture}[node distance=1.5cm and 2cm]
+\begin{tikzpicture}
 
-% Control FSM (left side)
-\node[logic, minimum width=2cm, minimum height=1.5cm] (fsm) at (0,0) {FSM\\Control};
-\node[register, minimum width=1.2cm, minimum height=0.7cm, below=0.8cm of fsm] (counters) {Counters};
+% Column 1: Control
+\node[logic, minimum width=2.2cm, minimum height=2cm] (fsm) at (0,6) {FSM\\Control};
+\node[register, minimum width=1.6cm, minimum height=0.9cm] (counters) at (0,3) {Counters};
 
-% State registers (vertical column)
-\node[register, minimum width=3cm, right=2.5cm of fsm, yshift=1.5cm] (input_reg) {Input [127:0]};
-\node[register, minimum width=3cm, below=1.2cm of input_reg] (state_reg) {State [127:0]};
-\node[register, minimum width=3cm, below=3.5cm of state_reg] (temp_reg) {Temp [127:0]};
-\node[register, minimum width=3cm, below=1.8cm of temp_reg] (output_reg) {Output [127:0]};
+% Column 2: Main datapath
+\node[register, minimum width=4cm] (input_reg) at (6,10) {Input [127:0]};
+\node[register, minimum width=4cm] (state_reg) at (6,7) {State [127:0]};
+\node[mux, minimum width=1.2cm] (col_mux) at (6,4) {MUX\\4:1};
+\node[mux, shape border rotate=180, minimum width=1.2cm] (demux) at (6,-1) {DEMUX};
+\node[register, minimum width=4cm] (temp_reg) at (6,-3.5) {Temp [127:0]};
+\node[register, minimum width=4cm] (output_reg) at (6,-6.5) {Output [127:0]};
 
-% Column MUX
-\node[mux, right=2.5cm of state_reg, minimum width=1cm] (col_mux) {MUX\\4:1};
-\node[buswidth, right=0.1cm of col_mux] {32};
+% Column 3: Processing units
+\node[sbox] (sbox0) at (11,5.5) {S};
+\node[sbox, right=0.25cm of sbox0] (sbox1) {S};
+\node[sbox, right=0.25cm of sbox1] (sbox2) {S};
+\node[sbox, right=0.25cm of sbox2] (sbox3) {S};
+\node[font=\small, above=0.15cm of sbox1.north] {SubBytes};
 
-% SubBytes S-boxes
-\node[sbox, right=2.5cm of col_mux, yshift=0.7cm] (sbox0) {S};
-\node[sbox, right=0.15cm of sbox0] (sbox1) {S};
-\node[sbox, right=0.15cm of sbox1] (sbox2) {S};
-\node[sbox, right=0.15cm of sbox2] (sbox3) {S};
-\node[font=\small, above=0.1cm of sbox1] {SubBytes};
+\node[logic, minimum width=2.2cm] (shift) at (11,2.5) {ShiftRows};
 
-% ShiftRows
-\node[logic, right=2.5cm of col_mux, yshift=-0.5cm, minimum width=1.8cm] (shift) {ShiftRows};
+% Column 4: MixColumns and XOR
+\node[alu, minimum width=2cm, minimum height=1.4cm] (mixcol) at (15,4) {MixCol\\GF($2^8$)};
+\node[logic, circle, minimum size=0.9cm] (xor) at (15,0) {$\oplus$};
 
-% MixColumns
-\node[alu, right=2.5cm of sbox1, minimum width=1.5cm, minimum height=1cm] (mixcol) {MixCol\\GF($2^8$)};
+% Column 5: Round key
+\node[register, minimum width=2cm] (key_word) at (19,0) {$K_r$[32]};
 
-% XOR (AddRoundKey)
-\node[logic, circle, minimum size=0.7cm, below=1.5cm of mixcol] (xor) {$\oplus$};
+% Buswidth labels
+\node[buswidth] at (7.5,7) {32};
+\node[buswidth] at (7.5,4) {32};
+\node[buswidth] at (17.2,0) {32};
 
-% DEMUX
-\node[mux, left=2.5cm of temp_reg, shape border rotate=180, minimum width=1cm] (demux) {DEMUX};
-
-% Round key input
-\node[register, minimum width=1.5cm, right=2.5cm of temp_reg] (key_word) {$K_r$[32]};
-
-% Data flow arrows
+% Data connections
 \draw[bus] (input_reg) -- (state_reg);
-\draw[bus] (state_reg) -- node[buswidth, above] {32} (col_mux);
-\draw[bus] (col_mux.north) |- (sbox0.west);
-\draw[bus] (sbox3) -- (mixcol);
-\draw[bus] (col_mux) -- (shift);
+\draw[bus] (state_reg) -- (col_mux);
+\draw[bus] (col_mux.north) -- ++(0,0.7) -| (sbox0.south);
+\draw[bus] (sbox3.east) -- ++(1,0) |- (mixcol.north);
+\draw[bus] (col_mux.south) -- ++(0,-0.7) -| (shift.west);
 \draw[bus] (shift.east) -| (mixcol.south);
 \draw[bus] (mixcol) -- (xor);
 \draw[bus] (xor) -- (demux);
 \draw[bus] (demux) -- (temp_reg);
-\draw[bus] (temp_reg.north) -- (state_reg.south);
+\draw[bus] (temp_reg) -- (state_reg);
 \draw[bus] (temp_reg) -- (output_reg);
-
-% Key path
-\draw[bus] (key_word) -- ++(0,2) -| node[buswidth, near start, right] {32} (xor.east);
+\draw[bus] (key_word) -- (xor);
 
 % Control signals
-\draw[controlwire] (fsm) -- (state_reg);
-\draw[controlwire] (counters.east) -- ++(1.5,0) |- (col_mux.west);
-\draw[controlwire] (counters.east) -- ++(1,0) |- (demux.south);
+\draw[controlwire] (fsm.east) -- ++(2,0) |- (state_reg.west);
+\draw[controlwire] (counters.east) -- ++(2,0) |- (col_mux.west);
+\draw[controlwire] (counters.south) -- ++(0,-0.5) -- ++(6,0) |- (demux.south);
 
 \end{tikzpicture}
 \end{document}
