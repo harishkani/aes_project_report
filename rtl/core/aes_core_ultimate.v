@@ -76,6 +76,7 @@ integer i;
 ////////////////////////////////////////////////////////////////////////////////
 
 // Module enable signals
+wire is_last_round = (round_cnt == 4'd10);
 wire subbytes_en = (state == ENC_SUB) || (state == DEC_SHIFT_SUB && phase == 2'd1);
 wire shiftrows_en = (state == ENC_SHIFT_MIX) || (state == DEC_SHIFT_SUB && phase == 2'd0);
 wire mixcols_en = (state == ENC_SHIFT_MIX && !is_last_round) ||
@@ -197,7 +198,7 @@ aes_mixcolumns_32bit mixcols_inst (
 ////////////////////////////////////////////////////////////////////////////////
 // Control Logic
 ////////////////////////////////////////////////////////////////////////////////
-wire is_last_round = (round_cnt == 4'd10);
+// (is_last_round declared above with module enable signals)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Main State Machine
