@@ -64,27 +64,30 @@
 \node[logic, circle, minimum size=0.8cm] (x3) at (2,-1.8) {$\oplus$};
 \node[logic, circle, minimum size=0.8cm] (x4) at (0,-1.8) {$\oplus$};
 
-% Connections
+% Connections from w3 to RotWord to SubWord
 \draw[bus] (w3) -- (rot);
 \draw[wire] (rot) -- ++(0,-1) -| (s0);
 \draw[wire] (rot) -- ++(0,-1) -| (s1);
 \draw[wire] (rot) -- ++(0,-1) -| (s2);
 \draw[wire] (rot) -- ++(0,-1) -| (s3);
 
+% Connections to XOR chain
 \draw[wire] (s1) -- ++(0,-1.4) -| (x1);
 \draw[wire] (rcon) -- (x1);
-\draw[bus] (w0) -- ++(0,-9.2) -| (x2);
-\draw[wire] (x1) -- ++(1,-1) -- ++(0,-0.2) -- ++(-3,0) -- (x2);
-\draw[wire] (x2) -- (x3);
-\draw[bus] (w1) -- ++(0,-9.2) -| (x3);
-\draw[wire] (x3) -- (x4);
-\draw[bus] (w2) -- ++(0,-9.2) -| (x4);
 
-% Feedback paths
-\draw[wire] (x2) -- ++(-1,0) -- ++(0,8.8) -- (w0);
-\draw[wire] (x3) -- ++(0,0.5) -- ++(-0.5,0) -- ++(0,9.3) -- (w1);
-\draw[wire] (x4) -- ++(0,0.5) -- ++(-0.3,0) -- ++(0,9.3) -- (w2);
-\draw[wire] (x4) -- ++(-0.5,0) -- ++(0,9.8) -- ++(6.5,0) -- (w3);
+% Forward XOR connections (going down and left around the outside)
+\draw[wire] (x1) -- ++(0,-0.5) -| ++(-2.5,0) |- (x2);
+\draw[bus] (w0) -| ++(-1,0) |- (x2);
+\draw[wire] (x2) -- (x3);
+\draw[bus] (w1) -| ++(-1.2,0) |- (x3);
+\draw[wire] (x3) -- (x4);
+\draw[bus] (w2) -| ++(-1.4,0) |- (x4);
+
+% Feedback paths - route around the LEFT side, not through the middle
+\draw[wire] (x4) -- ++(-2,0) -- ++(0,10.8) -| (w0);
+\draw[wire] (x3) -- ++(-1.7,0) -- ++(0,10.8) -| (w1);
+\draw[wire] (x2) -- ++(-1.4,0) -- ++(0,10.8) -| (w2);
+\draw[wire] (x1) -- ++(2,0) -- ++(0,8.8) -| (w3);
 
 % Output MUX
 \node[mux] (outmux) at (10,7) {MUX};
