@@ -9,3 +9,10 @@
 *.nav
 *.snm
 *.vrb
+
+# Verilog simulation artifacts
+sim_*
+*.vcd
+*.vvp
+*.lxt
+*.lxt2
