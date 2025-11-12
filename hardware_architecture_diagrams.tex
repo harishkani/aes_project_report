@@ -103,7 +103,7 @@
 \maketitle
 
 %==============================================================================
-% Figure 1: Complete Datapath - SIMPLIFIED AND PROPERLY SPACED
+% Figure 1: Complete Datapath - FIXED ARROWS
 %==============================================================================
 \begin{figure*}[!t]
 \centering
@@ -147,17 +147,17 @@
 \draw[bus] (input_reg) -- (state_reg);
 \draw[bus] (state_reg) -- node[buswidth, above] {32} (col_mux);
 \draw[bus] (col_mux.north) |- (sbox0.west);
-\draw[bus] (sbox3.east) -| (mixcol.north);
-\draw[bus] (col_mux.south) |- (shift.west);
+\draw[bus] (sbox3) -- (mixcol);  % FIXED: Direct connection
+\draw[bus] (col_mux) -- (shift);  % FIXED: Direct connection
 \draw[bus] (shift.east) -| (mixcol.south);
 \draw[bus] (mixcol) -- (xor);
-\draw[bus] (xor) -- ++(0,-0.5) -| (demux);
+\draw[bus] (xor) -- (demux);  % FIXED: Direct connection
 \draw[bus] (demux) -- (temp_reg);
 \draw[bus] (temp_reg.north) -- (state_reg.south);
-\draw[bus] (temp_reg) -- (output_reg);
+\draw[bus] (temp_reg) -- (output_reg);  % Already straight
 
 % Key path
-\draw[bus] (keys) -- (key_mux);
+\draw[bus] (key_mux) -- (keys);  % FIXED: Direct connection
 \draw[bus] (key_mux) -- ++(0,0.8) -| node[buswidth, near end, above] {32} (xor.east);
 
 % Control
