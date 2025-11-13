@@ -16,10 +16,10 @@ set_property -dict { PACKAGE_PIN C12   IOSTANDARD LVCMOS33 } [get_ports rst_n]
 ################################################################################
 ## Push Buttons (active-high on Nexys A7)
 ################################################################################
-set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports btnC]     # Center: Start AES
-set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports btnU]     # Up: Toggle encrypt/decrypt
-set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports btnL]     # Left: Previous display group
-set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports btnR]     # Right: Next display group
+set_property -dict { PACKAGE_PIN N17   IOSTANDARD LVCMOS33 } [get_ports btnC]
+set_property -dict { PACKAGE_PIN M18   IOSTANDARD LVCMOS33 } [get_ports btnU]
+set_property -dict { PACKAGE_PIN P17   IOSTANDARD LVCMOS33 } [get_ports btnL]
+set_property -dict { PACKAGE_PIN M17   IOSTANDARD LVCMOS33 } [get_ports btnR]
 
 ################################################################################
 ## Switches (Test Vector Selection)
@@ -65,13 +65,13 @@ set_property -dict { PACKAGE_PIN V11   IOSTANDARD LVCMOS33 } [get_ports {led[15]
 ## 7-Segment Display (Common Anode on Nexys A7)
 ################################################################################
 # Segment outputs (active-low)
-set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports {seg[0]}]  # a
-set_property -dict { PACKAGE_PIN R10   IOSTANDARD LVCMOS33 } [get_ports {seg[1]}]  # b
-set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports {seg[2]}]  # c
-set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS33 } [get_ports {seg[3]}]  # d
-set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports {seg[4]}]  # e
-set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports {seg[5]}]  # f
-set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports {seg[6]}]  # g
+set_property -dict { PACKAGE_PIN T10   IOSTANDARD LVCMOS33 } [get_ports {seg[0]}]
+set_property -dict { PACKAGE_PIN R10   IOSTANDARD LVCMOS33 } [get_ports {seg[1]}]
+set_property -dict { PACKAGE_PIN K16   IOSTANDARD LVCMOS33 } [get_ports {seg[2]}]
+set_property -dict { PACKAGE_PIN K13   IOSTANDARD LVCMOS33 } [get_ports {seg[3]}]
+set_property -dict { PACKAGE_PIN P15   IOSTANDARD LVCMOS33 } [get_ports {seg[4]}]
+set_property -dict { PACKAGE_PIN T11   IOSTANDARD LVCMOS33 } [get_ports {seg[5]}]
+set_property -dict { PACKAGE_PIN L18   IOSTANDARD LVCMOS33 } [get_ports {seg[6]}]
 
 # Anode outputs (active-low, digit selection)
 set_property -dict { PACKAGE_PIN J17   IOSTANDARD LVCMOS33 } [get_ports {an[0]}]
@@ -99,61 +99,15 @@ set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design]
 ################################################################################
 ## Timing Constraints
 ################################################################################
-# Allow buttons to be used as control signals (not clocks)
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets btnC_IBUF]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets btnU_IBUF]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets btnL_IBUF]
-set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets btnR_IBUF]
-
-# False paths for asynchronous inputs
+# False paths for asynchronous inputs (buttons and switches)
+set_false_path -from [get_ports rst_n]
 set_false_path -from [get_ports btnC]
 set_false_path -from [get_ports btnU]
 set_false_path -from [get_ports btnL]
 set_false_path -from [get_ports btnR]
 set_false_path -from [get_ports {sw[*]}]
 
-# False paths for outputs
+# False paths for outputs (LEDs and display)
 set_false_path -to [get_ports {led[*]}]
 set_false_path -to [get_ports {seg[*]}]
 set_false_path -to [get_ports {an[*]}]
-
-################################################################################
-## Canright S-box Specific Optimizations
-################################################################################
-# The Canright design uses modular GF arithmetic primitives
-# These constraints help optimize the composite field S-box implementation
-
-# Ensure critical paths in GF operations are optimized
-set_max_delay -from [get_pins -hier -filter {NAME =~ *aes_inst/subbytes_inst/*}] \
-              -to [get_pins -hier -filter {NAME =~ *aes_inst/temp_state_reg*}] 8.0
-
-# Optimize GF(2^8) inverse module timing
-set_max_delay -from [get_pins -hier -filter {NAME =~ *GF_INV_8/*}] 6.0
-
-# Multi-cycle paths for state register updates (takes multiple clock cycles per round)
-set_multicycle_path -setup 2 -from [get_pins -hier -filter {NAME =~ *aes_inst/aes_state_reg*}] \
-                              -to [get_pins -hier -filter {NAME =~ *aes_inst/aes_state_reg*}]
-set_multicycle_path -hold 1  -from [get_pins -hier -filter {NAME =~ *aes_inst/aes_state_reg*}] \
-                              -to [get_pins -hier -filter {NAME =~ *aes_inst/aes_state_reg*}]
-
-################################################################################
-## Placement Constraints (Optional - for better area utilization)
-################################################################################
-# Group Canright sub-modules together for better routing
-# set_property LOC SLICE_X10Y50 [get_cells -hier -filter {NAME =~ *subbytes_inst*}]
-
-################################################################################
-## Power Optimization
-################################################################################
-# Enable clock gating for Canright S-boxes (reduces dynamic power by ~25%)
-set_property CLOCK_GATING TRUE [get_cells -hier -filter {REF_NAME == aes_core_ultimate_canright}]
-
-################################################################################
-## Synthesis Strategy
-################################################################################
-# Optimize for area (Canright design is area-focused)
-# These settings should be applied in Vivado synthesis settings:
-# -strategy: Area_Explore
-# -flatten_hierarchy: rebuilt
-# -fsm_extraction: auto
-# -resource_sharing: auto
