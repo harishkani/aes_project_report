@@ -114,21 +114,6 @@ assign mixcols_clk = clk & mixcols_en;
 `endif
 
 ////////////////////////////////////////////////////////////////////////////////
-// OPTIMIZATION 3: Pipeline with Shift Register Attributes
-////////////////////////////////////////////////////////////////////////////////
-(* shreg_extract = "yes" *)
-reg [31:0] state_col_pipe [0:3];
-
-(* shreg_extract = "yes" *)
-reg [31:0] temp_col_pipe [0:3];
-
-(* shreg_extract = "yes" *)
-reg [127:0] shiftrows_pipe;
-
-(* shreg_extract = "yes" *)
-reg [31:0] mixcol_pipe_stage1;
-
-////////////////////////////////////////////////////////////////////////////////
 // Key Expansion Module Instance (uses on-the-fly expansion)
 ////////////////////////////////////////////////////////////////////////////////
 aes_key_expansion_otf key_exp (
@@ -221,15 +206,6 @@ always @(posedge clk or negedge rst_n) begin
         for (i = 0; i < 44; i = i + 1) begin
             rk_shift_reg[i] <= 32'h0;
         end
-
-        // Reset pipeline stages
-        for (i = 0; i < 4; i = i + 1) begin
-            state_col_pipe[i] <= 32'h0;
-            temp_col_pipe[i] <= 32'h0;
-        end
-
-        shiftrows_pipe <= 128'h0;
-        mixcol_pipe_stage1 <= 32'h0;
     end else begin
         // Default: clear control signals
         key_next <= 1'b0;
@@ -293,9 +269,7 @@ always @(posedge clk or negedge rst_n) begin
             // ENCRYPTION: SubBytes → ShiftRows → MixColumns → AddRoundKey
             ////////////////////////////////////////////////////////////////////////
             ENC_SUB: begin
-                // SubBytes with clock gating and pipeline
-                temp_col_pipe[col_cnt] <= col_subbed;
-
+                // SubBytes column-wise processing
                 case (col_cnt)
                     2'd0: temp_state[127:96] <= col_subbed;
                     2'd1: temp_state[95:64]  <= col_subbed;
@@ -312,10 +286,7 @@ always @(posedge clk or negedge rst_n) begin
             end
 
             ENC_SHIFT_MIX: begin
-                // ShiftRows → MixColumns → AddRoundKey with clock gating
-                shiftrows_pipe <= state_shifted;
-                mixcol_pipe_stage1 <= is_last_round ? shifted_col : col_mixed;
-
+                // ShiftRows → MixColumns → AddRoundKey
                 case (col_cnt)
                     2'd0: aes_state[127:96] <= (is_last_round ? shifted_col : col_mixed) ^ current_rkey;
                     2'd1: aes_state[95:64]  <= (is_last_round ? shifted_col : col_mixed) ^ current_rkey;
@@ -343,7 +314,6 @@ always @(posedge clk or negedge rst_n) begin
                 if (phase == 2'd0) begin
                     // Phase 0: Apply InvShiftRows
                     temp_state <= state_shifted;
-                    shiftrows_pipe <= state_shifted;
                     phase      <= 2'd1;
                 end else begin
                     // Phase 1: Apply InvSubBytes
@@ -386,8 +356,6 @@ always @(posedge clk or negedge rst_n) begin
                     end
                 end else begin
                     // Phase 1: InvMixColumns
-                    mixcol_pipe_stage1 <= col_mixed;
-
                     case (col_cnt)
                         2'd0: aes_state[127:96] <= col_mixed;
                         2'd1: aes_state[95:64]  <= col_mixed;

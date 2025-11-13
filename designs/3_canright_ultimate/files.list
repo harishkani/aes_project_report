@@ -1,0 +1,35 @@
+# AES Canright Ultimate Design - Complete File List
+# This file can be used with iverilog, verilator, or other command-line tools
+# Usage: iverilog -o output @files.list
+#
+# Note: All paths are relative to designs/3_canright_ultimate/
+
+# ============================================================================
+# S-box Modules
+# ============================================================================
+rtl/aes_sbox.v                      # LUT-based S-box (for key expansion)
+rtl/aes_sbox_canright.v             # Canright S-box (all 13 modules in one file)
+
+# ============================================================================
+# AES Operation Modules
+# ============================================================================
+rtl/aes_subbytes_32bit_canright.v
+rtl/aes_shiftrows_128bit.v
+rtl/aes_mixcolumns_32bit.v
+rtl/aes_key_expansion_otf.v
+
+# ============================================================================
+# Top-level AES Core
+# ============================================================================
+rtl/aes_core_ultimate_canright.v
+
+# ============================================================================
+# FPGA Implementation Files (for synthesis - comment out for simulation-only)
+# ============================================================================
+# aes_canright_fpga_top.v             # Top-level FPGA wrapper
+# display/seven_seg_controller.v      # 7-segment display controller
+
+# ============================================================================
+# Testbench (comment out for synthesis)
+# ============================================================================
+tb/tb_aes_ultimate_canright.v

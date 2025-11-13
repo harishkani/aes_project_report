@@ -1,0 +1,35 @@
+# AES LUT Ultimate Design - Complete File List
+# This file can be used with iverilog, verilator, or other command-line tools
+# Usage: iverilog -o output @files.list
+#
+# Note: All paths are relative to designs/2_lut_ultimate/
+
+# ============================================================================
+# S-box Modules (LUT-based, can be synthesized individually)
+# ============================================================================
+rtl/aes_sbox.v                      # Forward S-box (LUT-based)
+rtl/aes_inv_sbox.v                  # Inverse S-box (LUT-based)
+
+# ============================================================================
+# AES Operation Modules
+# ============================================================================
+rtl/aes_subbytes_32bit_shared.v     # SubBytes with 4 shared S-boxes
+rtl/aes_shiftrows_128bit.v          # ShiftRows transformation
+rtl/aes_mixcolumns_32bit.v          # MixColumns transformation
+rtl/aes_key_expansion_otf.v         # On-the-fly key expansion
+
+# ============================================================================
+# Top-level AES Core
+# ============================================================================
+rtl/aes_core_ultimate.v             # Main AES core with SRL + sharing
+
+# ============================================================================
+# FPGA Implementation Files (for synthesis - comment out for simulation-only)
+# ============================================================================
+# aes_lut_fpga_top.v                # Top-level FPGA wrapper
+# display/seven_seg_controller.v    # 7-segment display controller
+
+# ============================================================================
+# Testbench (comment out for synthesis)
+# ============================================================================
+tb/tb_aes_ultimate.v
