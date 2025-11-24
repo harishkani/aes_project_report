@@ -1,0 +1,212 @@
+%% AES-128 Architecture Diagrams in Mermaid
+%% Renders automatically in GitHub, VS Code, and many markdown viewers
+
+---
+title: AES-128 On-the-Fly Key Expansion Module
+---
+graph TB
+    %% Title
+    Title["<b>AES-128 On-the-Fly Key Expansion Module</b>"]
+
+    %% Master Key
+    MasterKey["Master Key<br/>[127:0]"]
+
+    %% Current Window
+    subgraph Window["Current 4-Word Window (128 bits)"]
+        W0["w0<br/>[31:0]"]
+        W1["w1<br/>[31:0]"]
+        W2["w2<br/>[31:0]"]
+        W3["w3<br/>[31:0]"]
+    end
+
+    %% RotWord
+    RotWord["RotWord<br/>(Rotation)"]
+
+    %% SubWord S-boxes
+    subgraph SubWord["SubWord (4 S-boxes)"]
+        SBox0["S-box 0"]
+        SBox1["S-box 1"]
+        SBox2["S-box 2"]
+        SBox3["S-box 3"]
+    end
+
+    %% Rcon
+    Rcon["Rcon<br/>(round)"]
+
+    %% Next Round Generation
+    TempW0["temp_w0 =<br/>w0 ⊕ result ⊕ Rcon"]
+    TempW1["temp_w1 =<br/>w1 ⊕ temp_w0"]
+    TempW2["temp_w2 =<br/>w2 ⊕ temp_w1"]
+    TempW3["temp_w3 =<br/>w3 ⊕ temp_w2"]
+
+    %% Output
+    OutMux["Output MUX"]
+    RoundKey["round_key<br/>[31:0]"]
+    WordAddr["word_addr[5:0]<br/>(0-43)"]
+
+    %% Control Signals
+    Ready["ready"]
+    Next["next"]
+    Start["start"]
+
+    %% Annotations
+    Annot1["💾 Only 128 bits stored<br/>vs 1408 bits<br/>(91% savings)"]
+    Annot2["⚡ Next round keys<br/>generated<br/>combinationally"]
+
+    %% Connections
+    MasterKey --> Window
+    W3 --> RotWord
+    RotWord --> SubWord
+    SubWord --> TempW0
+    Rcon --> TempW0
+    TempW0 --> TempW1
+    TempW1 --> TempW2
+    TempW2 --> TempW3
+
+    %% Feedback
+    TempW0 -.->|"feedback"| W0
+    TempW1 -.->|"feedback"| W1
+    TempW2 -.->|"feedback"| W2
+    TempW3 -.->|"feedback"| W3
+
+    %% Output path
+    W0 --> OutMux
+    W1 --> OutMux
+    W2 --> OutMux
+    W3 --> OutMux
+    OutMux --> RoundKey
+
+    %% Styling
+    classDef storage fill:#fff2cc,stroke:#d6b656,stroke-width:2px
+    classDef process fill:#dae8fc,stroke:#6c8ebf,stroke-width:2px
+    classDef sbox fill:#f8cecc,stroke:#b85450,stroke-width:2px
+    classDef nextround fill:#d5e8d4,stroke:#82b366,stroke-width:2px
+    classDef control fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
+    classDef annot fill:#ffe6cc,stroke:#d79b00,stroke-width:2px
+
+    class W0,W1,W2,W3,MasterKey,Rcon,RoundKey,WordAddr storage
+    class RotWord,OutMux process
+    class SBox0,SBox1,SBox2,SBox3 sbox
+    class TempW0,TempW1,TempW2,TempW3 nextround
+    class Ready,Next,Start control
+    class Annot1,Annot2 annot
+
+---
+title: AES-128 Core - 32-bit Datapath
+---
+graph TB
+    %% Title
+    Title2["<b>AES-128 Core: 32-bit Datapath</b>"]
+
+    %% Input
+    DataIn["data_in [127:0]"]
+
+    %% State Register
+    subgraph State["AES State Register [127:0]"]
+        Col0["Column 0<br/>[127:96]"]
+        Col1["Column 1<br/>[95:64]"]
+        Col2["Column 2<br/>[63:32]"]
+        Col3["Column 3<br/>[31:0]"]
+    end
+
+    %% Column Selector
+    ColSel["Column Selector<br/>col_cnt [1:0]"]
+    CurCol["Current Column<br/>[31:0]"]
+
+    %% SubBytes
+    subgraph SubBytes["SubBytes (4 Shared S-boxes)"]
+        DSBox0["S-box 0"]
+        DSBox1["S-box 1"]
+        DSBox2["S-box 2"]
+        DSBox3["S-box 3"]
+    end
+
+    %% Transformations
+    TempState["Temp State [127:0]"]
+    ShiftRows["ShiftRows<br/>(Full 128-bit)"]
+    ShiftCol["Shifted Column<br/>[31:0]"]
+    MixCols["MixColumns<br/>(32-bit)"]
+    AddRoundKey["AddRoundKey<br/>(XOR)"]
+
+    %% Key Management
+    subgraph KeyMgmt["Key Management"]
+        KeyReg["Round Key<br/>Shift Register<br/>[0:43]"]
+        KeyExp["Key Expansion<br/>OTF"]
+        RKey["Round Key<br/>[31:0]"]
+    end
+
+    %% Output
+    DataOut["data_out [127:0]"]
+
+    %% Control FSM
+    subgraph FSM["Control FSM"]
+        States["<b>States:</b><br/>• IDLE<br/>• KEY_EXPAND<br/>• ROUND0<br/>• ENC_SUB<br/>• ENC_SHIFT_MIX<br/>• DEC_SHIFT_SUB<br/>• DEC_ADD_MIX<br/>• DONE<br/><br/><b>Counters:</b><br/>• round_cnt[3:0]<br/>• col_cnt[1:0]<br/>• phase[1:0]"]
+    end
+
+    %% Annotations
+    Annot3["🔄 Processes<br/>1 column per cycle"]
+    Annot4["💾 44 words stored<br/>(176 bytes)"]
+    Annot5["⏱️ 4 cycles/transform<br/>~440-480 cycles total<br/>2.27 Mbps @ 100MHz"]
+
+    %% Connections
+    DataIn --> State
+    State --> ColSel
+    ColSel --> CurCol
+    CurCol --> SubBytes
+    SubBytes --> TempState
+    TempState --> ShiftRows
+    ShiftRows --> ShiftCol
+    ShiftCol --> MixCols
+    MixCols --> AddRoundKey
+    RKey --> AddRoundKey
+    KeyReg --> KeyExp
+    KeyExp --> RKey
+    AddRoundKey --> DataOut
+
+    %% Feedback
+    AddRoundKey -.->|"write back"| State
+
+    %% Control connections
+    FSM -.->|"control"| ColSel
+    FSM -.->|"control"| DataOut
+
+    %% Styling
+    class Col0,Col1,Col2,Col3,CurCol,ShiftCol,KeyReg,RKey storage
+    class ColSel,ShiftRows,MixCols,AddRoundKey,KeyExp process
+    class DSBox0,DSBox1,DSBox2,DSBox3 sbox
+    class TempState,DataIn,DataOut nextround
+    class FSM control
+    class Annot3,Annot4,Annot5 annot
+
+---
+title: AES Encryption Flow (32-bit Datapath)
+---
+graph LR
+    subgraph Round0["Round 0"]
+        R0["AddRoundKey<br/>4 cycles"]
+    end
+
+    subgraph Rounds1to9["Rounds 1-9 (×9)"]
+        R1["SubBytes<br/>4 cycles"]
+        R2["ShiftRows<br/>(full 128-bit)"]
+        R3["MixColumns<br/>4 cycles"]
+        R4["AddRoundKey<br/>(interleaved)"]
+        R1 --> R2 --> R3 --> R4
+        Total1["8 cycles per round"]
+    end
+
+    subgraph Round10["Round 10"]
+        R10_1["SubBytes<br/>4 cycles"]
+        R10_2["ShiftRows"]
+        R10_3["AddRoundKey<br/>4 cycles"]
+        R10_1 --> R10_2 --> R10_3
+        Total2["6 cycles<br/>(no MixColumns)"]
+    end
+
+    Round0 --> Rounds1to9 --> Round10
+
+    Result["✓ ~440 cycles total<br/>2.27 Mbps @ 100MHz"]
+    Round10 --> Result
+
+    classDef round fill:#e1d5e7,stroke:#9673a6,stroke-width:2px
+    class R0,R1,R2,R3,R4,R10_1,R10_2,R10_3 round
