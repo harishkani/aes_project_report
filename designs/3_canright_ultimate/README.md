@@ -31,6 +31,8 @@ This is the **most optimized** AES-128 FPGA implementation using:
 
 ## Files Included
 
+**Note**: The Canright S-box uses modular file organization with separate files for each GF arithmetic primitive. See `VIVADO_SOURCES.md` for complete file list and `files.list` for compilation.
+
 ### RTL Files (in `rtl/`)
 
 1. **aes_core_ultimate_canright.v** - Top-level AES core
@@ -38,12 +40,13 @@ This is the **most optimized** AES-128 FPGA implementation using:
    - Round counter and control
    - Integration of all modules
 
-2. **aes_sbox_canright_verified.v** - Canright composite field S-box
+2. **aes_sbox_canright_verified.v** - Canright composite field S-box wrapper
    - Based on Canright (2005) algorithm
    - Tower field: GF((2^4)^2) over GF((2^2)^2)
    - Dual-mode (encryption + decryption)
    - 42 LUTs per S-box (30% smaller than LUT)
    - Fully verified (768/768 tests passed)
+   - **Requires**: All 12 sub-modules from `rtl/canright_modules/` directory
 
 3. **aes_subbytes_32bit_canright.v** - SubBytes module
    - Uses 4 Canright S-boxes
@@ -69,6 +72,30 @@ This is the **most optimized** AES-128 FPGA implementation using:
    - 256×8 ROM lookup table
    - ~30 LUTs each
 
+### Canright Sub-modules (in `rtl/canright_modules/`)
+
+The Canright S-box is built from 12 separate modular files:
+
+**GF(2^2) Primitives** (6 files):
+- `gf_sq_2.v` - Square in GF(2^2)
+- `gf_sclw_2.v` - Scale by omega
+- `gf_sclw2_2.v` - Scale by omega^2
+- `gf_muls_2.v` - Multiply with shared factors
+- `gf_muls_scl_2.v` - Multiply and scale
+- `mux21i.v` - Inverting 2:1 multiplexor
+
+**GF(2^4) Operations** (3 files):
+- `gf_inv_4.v` - Inverse in GF(2^4)
+- `gf_sq_scl_4.v` - Square and scale
+- `gf_muls_4.v` - Multiply with shared factors
+
+**GF(2^8) and Selection** (3 files):
+- `gf_inv_8.v` - Inverse in GF(2^8)
+- `select_not_8.v` - 8-bit select and invert
+- `bsbox.v` - Core Canright S-box implementation
+
+**All 12 files must be included during compilation!**
+
 ### Testbench Files (in `tb/`)
 
 1. **tb_aes_ultimate_canright.v** - Comprehensive testbench
@@ -82,22 +109,46 @@ This is the **most optimized** AES-128 FPGA implementation using:
 
 ## How to Compile and Test
 
+### Using Vivado (Recommended for FPGA)
+
+The Canright design uses **modular file organization** with 19 separate files. All files must be added to your Vivado project.
+
+**Quick Setup:**
+
+```tcl
+# In Vivado TCL Console:
+cd path/to/designs/3_canright_ultimate
+source add_sources.tcl
+```
+
+The script automatically adds all sources in the correct dependency order:
+- 12 Canright sub-modules (GF arithmetic primitives)
+- 6 AES operation modules
+- 1 top-level core
+- 1 testbench
+
+**Manual Setup:**
+
+See `VIVADO_SOURCES.md` for detailed file list and dependency order.
+
+**Common Issue**: "module aes_sbox not found"
+- **Cause**: Missing `rtl/aes_sbox.v` (used by key expansion)
+- **Solution**: Ensure ALL files from `rtl/` and `rtl/canright_modules/` are added
+
 ### Using Icarus Verilog (iverilog)
 
 ```bash
 # Navigate to this directory
 cd designs/3_canright_ultimate
 
-# Compile all files
+# Option 1: Use file list
+iverilog -o aes_canright.vvp @files.list
+
+# Option 2: Specify files explicitly (all Canright sub-modules required)
 iverilog -o aes_canright.vvp -g2012 \
-  tb/tb_aes_ultimate_canright.v \
-  rtl/aes_core_ultimate_canright.v \
-  rtl/aes_subbytes_32bit_canright.v \
-  rtl/aes_sbox_canright_verified.v \
-  rtl/aes_shiftrows_128bit.v \
-  rtl/aes_mixcolumns_32bit.v \
-  rtl/aes_key_expansion_otf.v \
-  rtl/aes_sbox.v
+  rtl/canright_modules/*.v \
+  rtl/*.v \
+  tb/tb_aes_ultimate_canright.v
 
 # Run simulation
 vvp aes_canright.vvp

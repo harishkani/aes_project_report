@@ -16,3 +16,7 @@ sim_*
 *.vvp
 *.lxt
 *.lxt2
+
+# Compiled test binaries
+test_*
+a.out

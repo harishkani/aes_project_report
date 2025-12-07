@@ -1,0 +1,17 @@
+`timescale 1ns / 1ps
+
+////////////////////////////////////////////////////////////////////////////////
+// Inverting 2:1 Multiplexor
+// Part of Canright AES S-box Implementation
+//
+// MUX21I is an inverting 2:1 multiplexor
+////////////////////////////////////////////////////////////////////////////////
+
+module MUX21I ( A, B, s, Q );
+  input A;
+  input B;
+  input s;
+  output Q;
+
+  assign Q = ~( s ? A : B );
+endmodule

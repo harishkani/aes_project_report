@@ -14,26 +14,27 @@ module aes_subbytes_32bit_canright(
 
 // Instantiate 4 Canright S-boxes (one per byte)
 // Each S-box handles both encryption and decryption based on enc_dec signal
+// Uses consolidated single-file Canright implementation (aes_sbox_canright.v)
 
-aes_sbox_canright_verified sbox0 (
+aes_sbox_canright sbox0 (
     .data_in(data_in[31:24]),
     .enc_dec(enc_dec),
     .data_out(data_out[31:24])
 );
 
-aes_sbox_canright_verified sbox1 (
+aes_sbox_canright sbox1 (
     .data_in(data_in[23:16]),
     .enc_dec(enc_dec),
     .data_out(data_out[23:16])
 );
 
-aes_sbox_canright_verified sbox2 (
+aes_sbox_canright sbox2 (
     .data_in(data_in[15:8]),
     .enc_dec(enc_dec),
     .data_out(data_out[15:8])
 );
 
-aes_sbox_canright_verified sbox3 (
+aes_sbox_canright sbox3 (
     .data_in(data_in[7:0]),
     .enc_dec(enc_dec),
     .data_out(data_out[7:0])
